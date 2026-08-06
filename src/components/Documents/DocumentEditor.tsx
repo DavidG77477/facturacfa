@@ -414,29 +414,28 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & Navigation */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white/95 backdrop-blur p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <button
             onClick={handleCancel}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {isEditing ? `Modifier ${type === 'devis' ? 'le Devis' : 'la Facture'} ${number}` : `Créer un nouveau ${type === 'devis' ? 'Devis' : 'Document (Facture)'}`}
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-bold text-slate-900 truncate">
+              {isEditing ? `Modifier ${type === 'devis' ? 'le Devis' : 'la Facture'} ${number}` : `Nouveau ${type === 'devis' ? 'Devis' : 'Document'}`}
             </h2>
-            <p className="text-xs text-slate-500">Remplissez les éléments ci-dessous pour générer votre aperçu PDF</p>
+            <p className="hidden sm:block text-xs text-slate-500">Remplissez les éléments ci-dessous pour générer votre aperçu PDF</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* View Tab Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center flex-1 sm:flex-none">
             <button
               type="button"
               onClick={() => setActiveTab('edit')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'edit' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -446,12 +445,12 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('preview')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                 activeTab === 'preview' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>Aperçu PDF</span>
+              <span>Aperçu</span>
             </button>
           </div>
 
@@ -459,10 +458,11 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm cursor-pointer"
+            className="px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm cursor-pointer shrink-0"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{isSaving ? 'Enregistrement…' : 'Enregistrer'}</span>
+            <span className="sm:hidden">{isSaving ? '…' : 'Sauver'}</span>
+            <span className="hidden sm:inline">{isSaving ? 'Enregistrement…' : 'Enregistrer'}</span>
           </button>
         </div>
       </div>
@@ -482,8 +482,8 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Main Document Details Card */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pb-6 border-b border-slate-100">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pb-5 sm:pb-6 border-b border-slate-100">
               {/* Type Switcher */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
@@ -706,7 +706,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           </div>
 
           {/* Dynamic Items Table */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">Articles & Prestations</h3>
               
@@ -784,7 +784,119 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               )}
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile: cartes empilées */}
+            <div className="md:hidden space-y-3">
+              {items.map((item, idx) => {
+                const lineHT = item.quantity * item.unitPrice * (1 - (item.discount || 0) / 100);
+                return (
+                  <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                        Ligne {idx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.id)}
+                        disabled={items.length === 1}
+                        className="p-2 text-rose-600 bg-rose-50 rounded-lg disabled:opacity-30 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Description</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Store Vénitien Alu..."
+                        value={item.description}
+                        onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    {showDimensions && (
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Hauteur</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="mm"
+                            value={item.length ?? ''}
+                            onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
+                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Largeur</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="mm"
+                            value={item.width ?? ''}
+                            onChange={(e) => handleItemChange(item.id, 'width', e.target.value)}
+                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-blue-700 mb-1">Prix client</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="500"
+                            placeholder="FCFA"
+                            value={item.clientPrice ?? ''}
+                            onChange={(e) => handleItemChange(item.id, 'clientPrice', e.target.value === '' ? '' : Number(e.target.value))}
+                            className="w-full px-2 py-2.5 bg-blue-50 border border-blue-300 rounded-xl text-blue-900 font-mono font-extrabold text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Qté</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))}
+                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">P.U. HT</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="500"
+                          value={item.unitPrice}
+                          onChange={(e) => handleItemChange(item.id, 'unitPrice', Number(e.target.value))}
+                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Remise %</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={item.discount}
+                          onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
+                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-200">
+                      <span className="text-xs font-bold text-slate-500">Total ligne HT</span>
+                      <span className="font-mono font-black text-slate-900 text-sm">{formatFCFA(lineHT, '')}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-y border-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider">
@@ -903,17 +1015,17 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               </table>
             </div>
 
-            <div className="flex justify-between items-center pt-2">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-blue-600" />
                 <span>Ajouter une ligne</span>
               </button>
 
-              <div className="text-right space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-[240px]">
+              <div className="w-full sm:w-auto sm:min-w-[240px] text-right space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div className="flex justify-between text-xs text-slate-600">
                   <span>Sous-total HT :</span>
                   <span className="font-mono font-semibold">{formatFCFA(totals.totalHT, currency)}</span>
@@ -937,7 +1049,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           </div>
 
           {/* Terms & Notes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
                 Notes / Remarques au client

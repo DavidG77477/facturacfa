@@ -76,6 +76,7 @@ export interface DocumentPreviewOptions {
   showSignature?: boolean;         // Afficher la signature apposée
   stampPosition?: ElementPosition; // Coordonnées du cachet (X, Y %)
   signaturePosition?: ElementPosition; // Coordonnées de la signature (X, Y %)
+  logoWidth?: number;              // Largeur du logo en px (redimensionnable sur l'aperçu)
   showDimensions?: boolean;        // Afficher/masquer les colonnes Hauteur et Largeur
 }
 

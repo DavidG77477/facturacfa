@@ -27,6 +27,7 @@ import {
   Stamp,
   PenTool,
   Ruler,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
@@ -73,6 +74,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     showDimensions: doc.previewOptions?.showDimensions ?? doc.items.some(item => Boolean(item.length || item.width)),
     stampPosition: doc.previewOptions?.stampPosition ?? { x: 55, y: 81, width: 130 },
     signaturePosition: doc.previewOptions?.signaturePosition ?? { x: 72, y: 83, width: 140 },
+    logoWidth: doc.previewOptions?.logoWidth ?? 160,
   });
 
   const [showOptionsBar, setShowOptionsBar] = React.useState(false);
@@ -97,6 +99,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       showDimensions: doc.previewOptions?.showDimensions ?? prev.showDimensions,
       stampPosition: doc.previewOptions?.stampPosition ?? prev.stampPosition,
       signaturePosition: doc.previewOptions?.signaturePosition ?? prev.signaturePosition,
+      logoWidth: doc.previewOptions?.logoWidth ?? prev.logoWidth ?? 160,
     }));
   }, [doc.id, doc.updatedAt, doc.previewOptions]);
 
@@ -169,7 +172,15 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     }
   };
 
-  const handleWidthChange = (type: 'stamp' | 'signature', delta: number) => {
+  const handleWidthChange = (type: 'stamp' | 'signature' | 'logo', delta: number) => {
+    if (type === 'logo') {
+      const currentW = options.logoWidth || 160;
+      const newW = Math.max(60, Math.min(360, currentW + delta));
+      const updated = { ...options, logoWidth: newW };
+      setOptions(updated);
+      if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
+      return;
+    }
     if (type === 'stamp') {
       const currentW = options.stampPosition.width || 130;
       const newW = Math.max(70, Math.min(250, currentW + delta));
@@ -228,8 +239,8 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   return (
     <div className="space-y-5">
       {/* Top Action Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900 text-white p-4 rounded-2xl shadow-xl border border-slate-800">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 bg-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-xl border border-slate-800 sticky top-14 sm:top-16 z-30">
+        <div className="flex flex-wrap items-center gap-2">
           <div className={`px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${
             isDevis ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white'
           }`}>
@@ -248,11 +259,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2">
           {/* Customization Options Toggle Button */}
           <button
             onClick={() => setShowOptionsBar(!showOptionsBar)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+            className={`px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
               showOptionsBar
                 ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-md'
                 : 'bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border-amber-500/30'
@@ -260,24 +271,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             title="Choisir les informations à afficher ou masquer sur le document"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Personnaliser l'affichage</span>
+            <span className="sm:hidden">Options</span>
+            <span className="hidden sm:inline">Personnaliser l'affichage</span>
           </button>
 
           {isDevis && onConvertDevisToFacture && (
             <button
               onClick={onConvertDevisToFacture}
-              className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-purple-900/20"
+              className="px-3.5 py-2.5 sm:py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-purple-900/20"
               title="Convertir ce devis en Facture"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Convertir en Facture</span>
+              <span className="sm:hidden">→ Facture</span>
+              <span className="hidden sm:inline">Convertir en Facture</span>
             </button>
           )}
 
           {onDuplicate && (
             <button
               onClick={onDuplicate}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
+              className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
               title="Dupliquer ce document"
             >
               <CopyPlus className="w-3.5 h-3.5 text-slate-400" />
@@ -288,7 +301,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {onEdit && (
             <button
               onClick={onEdit}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
+              className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
             >
               <Edit3 className="w-3.5 h-3.5 text-slate-400" />
               <span>Modifier</span>
@@ -297,15 +310,16 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
           <button
             onClick={handleCopySummary}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
+            className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-            <span>{copied ? 'Copié !' : 'Copier résumé'}</span>
+            <span className="sm:hidden">{copied ? 'Copié' : 'Résumé'}</span>
+            <span className="hidden sm:inline">{copied ? 'Copié !' : 'Copier résumé'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700/60"
+            className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
           >
             <Printer className="w-3.5 h-3.5 text-slate-400" />
             <span>Imprimer</span>
@@ -314,7 +328,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           <button
             onClick={handleDownload}
             disabled={isExporting}
-            className={`px-4 py-2 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50 ${
+            className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 ${
               downloadSuccess
                 ? 'bg-blue-600 text-white'
                 : isDevis
@@ -330,7 +344,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span>{isExporting ? 'Génération du PDF...' : 'Télécharger PDF'}</span>
+                <span>{isExporting ? 'Génération…' : 'Télécharger PDF'}</span>
               </>
             )}
           </button>
@@ -452,6 +466,31 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               <span className="text-left leading-tight">Cadre Signatures</span>
             </button>
 
+            {/* Taille du logo */}
+            {profile.logoUrl && (
+              <div className="p-2.5 rounded-xl border border-blue-200 bg-blue-50/80 text-xs font-bold flex items-center gap-2 col-span-1 sm:col-span-2">
+                <ImageIcon className="w-4 h-4 text-blue-700 shrink-0" />
+                <span className="text-slate-800 shrink-0">Taille logo</span>
+                <button
+                  type="button"
+                  onClick={() => handleWidthChange('logo', -20)}
+                  className="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg flex items-center justify-center font-black text-sm cursor-pointer text-slate-700"
+                  title="Réduire le logo"
+                >
+                  -
+                </button>
+                <span className="font-mono text-blue-900 min-w-[3.5rem] text-center">{options.logoWidth || 160}px</span>
+                <button
+                  type="button"
+                  onClick={() => handleWidthChange('logo', 20)}
+                  className="w-7 h-7 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg flex items-center justify-center font-black text-sm cursor-pointer text-slate-700"
+                  title="Agrandir le logo"
+                >
+                  +
+                </button>
+              </div>
+            )}
+
             {/* Cachet Officiel (Stamp) */}
             <button
               type="button"
@@ -501,11 +540,15 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       )}
 
       {/* Printable Canvas Outer Container */}
-      <div className="bg-slate-200/60 p-4 sm:p-8 rounded-3xl overflow-x-auto flex justify-center border border-slate-300/60 shadow-inner">
+      <p className="md:hidden text-[11px] text-slate-500 font-medium px-1">
+        Faites glisser horizontalement pour voir tout le document A4.
+      </p>
+      <div className="bg-slate-200/60 p-3 sm:p-8 rounded-2xl sm:rounded-3xl overflow-x-auto overscroll-x-contain border border-slate-300/60 shadow-inner -mx-1 sm:mx-0">
+        <div className="min-w-[794px] flex justify-center mx-auto">
         <div
           ref={paperRef}
           id={elementId}
-          className={`bg-white text-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-200/90 w-full max-w-[794px] min-h-[1123px] flex flex-col justify-between font-sans text-xs leading-relaxed relative overflow-hidden box-border ${
+          className={`bg-white text-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-200/90 w-[794px] min-h-[1123px] flex flex-col justify-between font-sans text-xs leading-relaxed relative overflow-visible box-border ${
             isDevis ? 'border-t-[10px] border-t-sky-600' : 'border-t-[10px] border-t-blue-700'
           }`}
           style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
@@ -541,20 +584,20 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
-              <div className="no-print opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
+              <div className="no-print opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
                 <Move className="w-3 h-3 text-amber-400" />
                 <span>Cachet</span>
                 <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', -10); }}
-                  className="w-4 h-4 bg-slate-800 hover:bg-slate-700 rounded flex items-center justify-center font-black text-xs cursor-pointer text-slate-200"
+                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Réduire taille"
                 >-</button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', 10); }}
-                  className="w-4 h-4 bg-slate-800 hover:bg-slate-700 rounded flex items-center justify-center font-black text-xs cursor-pointer text-slate-200"
+                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Agrandir taille"
                 >+</button>
               </div>
@@ -592,20 +635,20 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
-              <div className="no-print opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
+              <div className="no-print opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
                 <Move className="w-3 h-3 text-blue-400" />
                 <span>Signature</span>
                 <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', -10); }}
-                  className="w-4 h-4 bg-slate-800 hover:bg-slate-700 rounded flex items-center justify-center font-black text-xs cursor-pointer text-slate-200"
+                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Réduire taille"
                 >-</button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', 10); }}
-                  className="w-4 h-4 bg-slate-800 hover:bg-slate-700 rounded flex items-center justify-center font-black text-xs cursor-pointer text-slate-200"
+                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Agrandir taille"
                 >+</button>
               </div>
@@ -618,14 +661,41 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               {/* Emitter Profile */}
               <div className="max-w-[390px] space-y-1.5">
                 {profile.logoUrl && !imgError ? (
-                  <img
-                    src={profile.logoUrl}
-                    alt={`Logo ${profile.companyName}`}
-                    onError={() => setImgError(true)}
-                    className="max-h-16 max-w-[220px] object-contain mb-3 block"
-                    crossOrigin="anonymous"
-                    referrerPolicy="no-referrer"
-                  />
+                  <div className="group relative inline-block mb-3 max-w-full">
+                    <img
+                      src={profile.logoUrl}
+                      alt={`Logo ${profile.companyName}`}
+                      onError={() => setImgError(true)}
+                      className="object-contain block max-w-full h-auto"
+                      style={{
+                        width: `${options.logoWidth || 160}px`,
+                        maxHeight: `${Math.round((options.logoWidth || 160) * 0.75)}px`,
+                      }}
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="no-print opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute -top-8 left-0 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap z-40">
+                      <ImageIcon className="w-3 h-3 text-sky-300" />
+                      <span>Logo</span>
+                      <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
+                      <button
+                        type="button"
+                        onClick={() => handleWidthChange('logo', -20)}
+                        className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                        title="Réduire logo"
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleWidthChange('logo', 20)}
+                        className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                        title="Agrandir logo"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white font-black text-sm rounded-xl tracking-wider mb-2 shadow-xs">
                     <Building2 className="w-4 h-4 text-blue-400" />
@@ -928,6 +998,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

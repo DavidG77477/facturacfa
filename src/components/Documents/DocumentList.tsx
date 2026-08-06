@@ -354,10 +354,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
             <button
               onClick={() => onNewDocument('devis')}
-              className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2.5 sm:py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouveau Devis</span>
@@ -365,7 +365,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
             <button
               onClick={() => onNewDocument('facture')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouvelle Facture</span>
@@ -440,7 +440,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         </div>
       </div>
 
-      {/* Documents Table */}
+      {/* Documents — cartes mobile / tableau desktop */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-12 p-6">
@@ -451,7 +451,92 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile cards */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filteredDocuments.map((doc) => {
+              const totals = calculateDocumentTotals(doc.items, doc.taxRate);
+              const isDevis = doc.type === 'devis';
+              return (
+                <div key={doc.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
+                          isDevis ? 'bg-sky-100 text-sky-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {isDevis ? 'DEVIS' : 'FAC'}
+                        </span>
+                        <span className="font-mono font-bold text-slate-900 text-xs">{doc.number}</span>
+                      </div>
+                      <div className="mt-1 font-semibold text-slate-900 text-sm truncate">
+                        {doc.clientInfo.companyName || doc.clientInfo.name}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        {doc.date}
+                        {doc.dueDate ? ` · Éch. ${doc.dueDate}` : ''}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-mono font-black text-slate-900 text-sm">
+                        {formatFCFA(totals.totalTTC, doc.currency)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <StatusSelector docId={doc.id} currentStatus={doc.status} onUpdateStatus={onUpdateStatus} />
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onViewDocument(doc)}
+                      className="py-2.5 px-3 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Aperçu
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEditDocument(doc)}
+                      className="py-2.5 px-3 bg-slate-100 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      Modifier
+                    </button>
+                    {isDevis && doc.status !== 'converti' && (
+                      <button
+                        type="button"
+                        onClick={() => onConvertDevisToFacture(doc)}
+                        className="py-2.5 px-3 bg-purple-50 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer col-span-2"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Convertir en facture
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onDuplicateDocument(doc)}
+                      className="py-2.5 px-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Dupliquer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDocumentToDelete(doc)}
+                      className="py-2.5 px-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
@@ -618,6 +703,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 

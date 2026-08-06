@@ -88,7 +88,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
 
         <button
           onClick={handleAddNew}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 text-sm cursor-pointer"
+          className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Nouveau Client</span>
@@ -96,23 +96,23 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
       </div>
 
       {/* Search Bar & Category Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3">
         <div className="relative flex-1">
           <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Rechercher un client par nom, société, email ou téléphone..."
+            placeholder="Rechercher nom, société, email…"
             className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
           />
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shrink-0">
+        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 overflow-x-auto">
           <button
             onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-2.5 sm:py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               categoryFilter === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100'
@@ -122,7 +122,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
           </button>
           <button
             onClick={() => setCategoryFilter('entreprise')}
-            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-2.5 sm:py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
               categoryFilter === 'entreprise'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
@@ -133,14 +133,15 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
           </button>
           <button
             onClick={() => setCategoryFilter('personne_physique')}
-            className={`px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-2.5 sm:py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
               categoryFilter === 'personne_physique'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
             }`}
           >
             <User className="w-3.5 h-3.5" />
-            <span>Personnes physiques</span>
+            <span className="sm:hidden">Particuliers</span>
+            <span className="hidden sm:inline">Personnes physiques</span>
           </button>
         </div>
       </div>

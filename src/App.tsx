@@ -504,7 +504,7 @@ export default function App() {
         <SavePopup type={flash.type} message={flash.message} onClose={closeFlash} />
       )}
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
         {dataLoading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
