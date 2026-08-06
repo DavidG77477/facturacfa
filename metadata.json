@@ -1,0 +1,6 @@
+{
+  "name": "FacturaCFA - Devis & Factures Francs CFA",
+  "description": "Application de création et gestion de devis et factures en Francs CFA (XOF/XAF), aperçu et export PDF, gestion des clients, authentification et recherche par date.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
