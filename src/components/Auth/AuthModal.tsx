@@ -191,6 +191,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="mb-8">
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--color-brand-ink)] dark:text-brand-sand tracking-tight">
                 {title}
+              </h2>
               <p className="text-sm text-slate-500 mt-2 leading-relaxed">{subtitle}</p>
             </div>
 
