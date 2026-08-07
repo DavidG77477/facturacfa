@@ -4,6 +4,8 @@ import { DateRangeFilter, DocumentStatus, DocumentType, InvoiceDocument } from '
 import { formatFCFA, calculateDocumentTotals } from '../../utils/currency';
 import { computeFinancialMetrics } from '../../utils/analytics';
 import { getStatusInfo, ALL_STATUSES } from '../../utils/status';
+import { formatDateFR, toISODate } from '../../utils/date';
+import { FrenchDateInput } from '../ui/FrenchDateInput';
 
 interface DocumentListProps {
   documents: InvoiceDocument[];
@@ -145,18 +147,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     let endDate = '';
 
     if (preset === 'this_month') {
-      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      startDate = firstDay.toISOString().split('T')[0];
-      endDate = today.toISOString().split('T')[0];
+      startDate = toISODate(new Date(today.getFullYear(), today.getMonth(), 1));
+      endDate = toISODate(today);
     } else if (preset === 'last_month') {
-      const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-      startDate = firstDayLastMonth.toISOString().split('T')[0];
-      endDate = lastDayLastMonth.toISOString().split('T')[0];
+      startDate = toISODate(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+      endDate = toISODate(new Date(today.getFullYear(), today.getMonth(), 0));
     } else if (preset === 'this_year') {
-      const firstDayYear = new Date(today.getFullYear(), 0, 1);
-      startDate = firstDayYear.toISOString().split('T')[0];
-      endDate = today.toISOString().split('T')[0];
+      startDate = toISODate(new Date(today.getFullYear(), 0, 1));
+      endDate = toISODate(today);
     }
 
     setDateFilter({
@@ -390,22 +388,20 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           {/* Date Range Selector */}
           <div className="md:col-span-4 flex items-center gap-2">
             <div className="relative flex-1">
-              <input
-                type="date"
+              <FrenchDateInput
                 value={dateFilter.startDate}
-                onChange={(e) => setDateFilter((prev) => ({ ...prev, startDate: e.target.value, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                title="Date Début"
+                onChange={(startDate) => setDateFilter((prev) => ({ ...prev, startDate, preset: 'custom' }))}
+                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Date début (JJ/MM/AAAA)"
               />
             </div>
             <span className="text-xs text-slate-400 font-bold">à</span>
             <div className="relative flex-1">
-              <input
-                type="date"
+              <FrenchDateInput
                 value={dateFilter.endDate}
-                onChange={(e) => setDateFilter((prev) => ({ ...prev, endDate: e.target.value, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                title="Date Fin"
+                onChange={(endDate) => setDateFilter((prev) => ({ ...prev, endDate, preset: 'custom' }))}
+                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Date fin (JJ/MM/AAAA)"
               />
             </div>
           </div>
@@ -473,8 +469,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                         {doc.clientInfo.companyName || doc.clientInfo.name}
                       </div>
                       <div className="text-[11px] text-slate-500 mt-0.5">
-                        {doc.date}
-                        {doc.dueDate ? ` · Éch. ${doc.dueDate}` : ''}
+                        {formatDateFR(doc.date)}
+                        {doc.dueDate ? ` · Éch. ${formatDateFR(doc.dueDate)}` : ''}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -631,8 +627,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
                       {/* Dates */}
                       <td className="py-3.5 px-4 text-slate-600">
-                        <div>{doc.date}</div>
-                        <div className="text-[10px] text-slate-600">Éch : {doc.dueDate}</div>
+                        <div>{formatDateFR(doc.date)}</div>
+                        <div className="text-[10px] text-slate-600">Éch : {formatDateFR(doc.dueDate)}</div>
                       </td>
 
                       {/* Status */}

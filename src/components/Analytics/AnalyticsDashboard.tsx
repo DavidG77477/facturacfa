@@ -30,6 +30,7 @@ import {
   UNPAID_FACTURE_STATUSES,
 } from '../../utils/analytics';
 import { DateRangePicker, DateRange } from './DateRangePicker';
+import { formatDateFR } from '../../utils/date';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -535,7 +536,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                       <div className="text-xs font-semibold text-slate-700">{doc.clientInfo.companyName || doc.clientInfo.name}</div>
                       <div className="text-[10px] text-slate-500 flex items-center gap-2">
                         <Calendar className="w-3 h-3 text-slate-400" />
-                        <span>Échéance : <strong>{doc.dueDate || doc.date}</strong></span>
+                        <span>Échéance : <strong>{formatDateFR(doc.dueDate || doc.date)}</strong></span>
                       </div>
                     </div>
 

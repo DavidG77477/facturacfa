@@ -4,6 +4,7 @@ import { BusinessProfile, Client, DocumentItem, DocumentType, InvoiceDocument, D
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
 import { isDocumentNumberUnique } from '../../utils/documentNumber';
 import { DocumentPDFPreview } from './DocumentPDFPreview';
+import { FrenchDateInput } from '../ui/FrenchDateInput';
 
 const DRAFT_STORAGE_KEY = 'facturacfa_document_draft';
 
@@ -23,6 +24,7 @@ interface DocumentDraft {
   notes: string;
   terms: string;
   showDimensions: boolean;
+  showDiscount: boolean;
   previewOptions: DocumentPreviewOptions;
   docId?: string;
   createdAt?: string;
@@ -45,6 +47,8 @@ function clearDraft(): void {
 
 interface DocumentEditorProps {
   documentToEdit?: InvoiceDocument | null;
+  /** Type demandé pour une création (ignoré en édition) */
+  initialType?: DocumentType;
   clients: Client[];
   businessProfile: BusinessProfile;
   existingDocuments?: InvoiceDocument[];
@@ -56,6 +60,7 @@ interface DocumentEditorProps {
 
 export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   documentToEdit,
+  initialType = 'facture',
   clients,
   businessProfile,
   existingDocuments = [],
@@ -66,10 +71,17 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
 }) => {
   const isEditing = !!documentToEdit;
   const draftKey = documentToEdit?.id || 'new-document';
-  const restoredDraft = useMemo(() => readDraft(draftKey), [draftKey]);
+  const restoredDraft = useMemo(() => {
+    const draft = readDraft(draftKey);
+    // Ne pas restaurer un brouillon d'un autre type (ex. facture quand on crée un devis)
+    if (!documentToEdit && draft && draft.type !== initialType) return null;
+    return draft;
+  }, [draftKey, documentToEdit, initialType]);
   const draftSeed = restoredDraft;
 
-  const [type, setType] = useState<DocumentType>(draftSeed?.type || documentToEdit?.type || 'facture');
+  const [type, setType] = useState<DocumentType>(
+    draftSeed?.type || documentToEdit?.type || initialType
+  );
   const [number, setNumber] = useState(draftSeed?.number || documentToEdit?.number || '');
   const [status, setStatus] = useState<DocumentStatus>(draftSeed?.status || documentToEdit?.status || 'en_attente');
   const [date, setDate] = useState(
@@ -134,6 +146,14 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     return documentToEdit?.items ? documentToEdit.items.some((it) => Boolean(it.length || it.width)) : true;
   });
 
+  const [showDiscount, setShowDiscount] = useState<boolean>(() => {
+    if (draftSeed?.showDiscount !== undefined) return draftSeed.showDiscount;
+    if (documentToEdit?.previewOptions?.showDiscount !== undefined) {
+      return documentToEdit.previewOptions.showDiscount;
+    }
+    return true;
+  });
+
   const [previewOptions, setPreviewOptions] = useState<DocumentPreviewOptions>(
     draftSeed?.previewOptions ||
       documentToEdit?.previewOptions || {
@@ -145,6 +165,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
         showAmountInWords: true,
         showSignatures: true,
         showDimensions: showDimensions,
+        showDiscount: showDiscount,
       }
   );
 
@@ -195,6 +216,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       notes,
       terms,
       showDimensions,
+      showDiscount,
       previewOptions,
       docId,
       createdAt,
@@ -224,6 +246,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     notes,
     terms,
     showDimensions,
+    showDiscount,
     previewOptions,
     docId,
     createdAt,
@@ -350,7 +373,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
         convertedFactureNumber,
         convertedFactureId,
         amountInWords,
-        previewOptions: { ...previewOptions, showDimensions },
+        previewOptions: { ...previewOptions, showDimensions, showDiscount },
         createdAt,
         updatedAt: new Date().toISOString(),
       };
@@ -405,7 +428,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       convertedFactureId,
       termsAndConditions: terms,
       amountInWords,
-      previewOptions: { ...previewOptions, showDimensions },
+      previewOptions: { ...previewOptions, showDimensions, showDiscount },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -477,7 +500,11 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
         <DocumentPDFPreview
           document={constructPreviewDocument()}
           businessProfile={businessProfile}
-          onUpdatePreviewOptions={(opts) => setPreviewOptions(opts)}
+          onUpdatePreviewOptions={(opts) => {
+            setPreviewOptions(opts);
+            if (opts.showDimensions !== undefined) setShowDimensions(opts.showDimensions);
+            if (opts.showDiscount !== undefined) setShowDiscount(opts.showDiscount);
+          }}
         />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -682,11 +709,10 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
                   Date d'émission
                 </label>
-                <input
-                  type="date"
+                <FrenchDateInput
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={setDate}
+                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -695,11 +721,10 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
                   {type === 'devis' ? 'Date de validité' : 'Date d\'échéance'}
                 </label>
-                <input
-                  type="date"
+                <FrenchDateInput
                   value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={setDueDate}
+                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -754,9 +779,9 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               </div>
             </div>
 
-            {/* Dimension Columns Toggle & Formula Helper Info Banner */}
+            {/* Dimension / Remise Columns Toggle & Formula Helper Info Banner */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/90 shadow-2xs">
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap items-center gap-2.5">
                 <span className="text-xs font-bold text-slate-700">Colonnes du tableau :</span>
                 <button
                   type="button"
@@ -772,7 +797,23 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   }`}
                 >
                   <Ruler className="w-3.5 h-3.5" />
-                  <span>{showDimensions ? 'Masquer Colonnes Hauteur & Largeur' : 'Ajouter Colonnes Hauteur & Largeur'}</span>
+                  <span>{showDimensions ? 'Masquer Hauteur & Largeur' : 'Ajouter Hauteur & Largeur'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextState = !showDiscount;
+                    setShowDiscount(nextState);
+                    setPreviewOptions((prev) => ({ ...prev, showDiscount: nextState }));
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    showDiscount
+                      ? 'bg-indigo-600 text-white shadow-2xs hover:bg-indigo-700'
+                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 shadow-2xs'
+                  }`}
+                >
+                  <Percent className="w-3.5 h-3.5" />
+                  <span>{showDiscount ? 'Masquer Remise' : 'Afficher Remise'}</span>
                 </button>
               </div>
 
@@ -852,7 +893,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         </div>
                       </div>
                     )}
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={`grid gap-2 ${showDiscount ? 'grid-cols-3' : 'grid-cols-2'}`}>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 mb-1">Qté</label>
                         <input
@@ -874,17 +915,19 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                           className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Remise %</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={item.discount}
-                          onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
-                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                      {showDiscount && (
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Remise %</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={item.discount}
+                            onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
+                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between items-center pt-1 border-t border-slate-200">
                       <span className="text-xs font-bold text-slate-500">Total ligne HT</span>
@@ -912,7 +955,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                     )}
                     <th className="py-2.5 px-2 w-16 text-center">Qté</th>
                     <th className="py-2.5 px-3 w-28 text-right">P.U. HT ({currency})</th>
-                    <th className="py-2.5 px-2 w-16 text-center">Remise (%)</th>
+                    {showDiscount && <th className="py-2.5 px-2 w-16 text-center">Remise (%)</th>}
                     <th className="py-2.5 px-3 w-28 text-right">Total HT</th>
                     <th className="py-2.5 px-2 w-8 text-center"></th>
                   </tr>
@@ -985,16 +1028,18 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </td>
-                        <td className="py-2.5 px-1.5">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={item.discount}
-                            onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </td>
+                        {showDiscount && (
+                          <td className="py-2.5 px-1.5">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={item.discount}
+                              onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
+                              className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </td>
+                        )}
                         <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-900 text-xs">
                           {formatFCFA(lineHT, '')}
                         </td>

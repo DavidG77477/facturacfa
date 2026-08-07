@@ -55,6 +55,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'documents' | 'clients' | 'analytics' | 'settings' | 'trash'>('documents');
   const [editorMode, setEditorMode] = useState(false);
   const [editingDocument, setEditingDocument] = useState<InvoiceDocument | null>(null);
+  const [newDocumentType, setNewDocumentType] = useState<DocumentType>('facture');
   const [previewDocument, setPreviewDocument] = useState<InvoiceDocument | null>(null);
   const [isQuickClientModalOpen, setIsQuickClientModalOpen] = useState(false);
   const [flash, setFlash] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -491,8 +492,9 @@ export default function App() {
         }}
         businessProfile={businessProfile}
         trashCount={trashItems.length}
-        onQuickNewDocument={() => {
+        onQuickNewDocument={(type) => {
           setEditingDocument(null);
+          setNewDocumentType(type || 'facture');
           setEditorMode(true);
           setActiveTab('documents');
         }}
@@ -546,6 +548,7 @@ export default function App() {
         ) : editorMode ? (
           <DocumentEditor
             documentToEdit={editingDocument}
+            initialType={newDocumentType}
             clients={clients}
             businessProfile={businessProfile}
             existingDocuments={documents}
@@ -562,8 +565,9 @@ export default function App() {
             {activeTab === 'documents' && (
               <DocumentList
                 documents={documents}
-                onNewDocument={() => {
+                onNewDocument={(type) => {
                   setEditingDocument(null);
+                  setNewDocumentType(type);
                   setEditorMode(true);
                 }}
                 onEditDocument={(doc) => {

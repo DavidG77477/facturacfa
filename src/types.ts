@@ -78,6 +78,13 @@ export interface DocumentPreviewOptions {
   signaturePosition?: ElementPosition; // Coordonnées de la signature (X, Y %)
   logoWidth?: number;              // Largeur du logo en px (redimensionnable sur l'aperçu)
   showDimensions?: boolean;        // Afficher/masquer les colonnes Hauteur et Largeur
+  showDiscount?: boolean;          // Afficher/masquer la colonne Remise
+  /** IDs des modules après lesquels forcer une nouvelle page PDF */
+  pageBreakAfterModules?: string[];
+  /** Modules à remonter sur la page précédente (inclus même s'ils dépassent un peu) */
+  pullToPreviousPageModules?: string[];
+  /** Débuts de tranche canvas (arrondis) des pages vides masquées par l'utilisateur */
+  hiddenPdfPageStarts?: number[];
 }
 
 export interface InvoiceDocument {

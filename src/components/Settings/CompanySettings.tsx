@@ -417,6 +417,9 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <p className="mt-1.5 text-[11px] text-slate-500">
+                Utilisée uniquement dans l’application (menu, compte). Elle n’apparaît pas sur vos devis et factures — le logo suffit.
+              </p>
             </div>
 
             <div>

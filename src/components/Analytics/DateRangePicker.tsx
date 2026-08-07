@@ -7,6 +7,8 @@ import {
   Check,
   RotateCcw,
 } from 'lucide-react';
+import { DAYS_FR_SHORT, MONTHS_FR, formatDateFR, toISODate } from '../../utils/date';
+import { FrenchDateInput } from '../ui/FrenchDateInput';
 
 export interface DateRange {
   startDate: string; // YYYY-MM-DD or ''
@@ -71,20 +73,20 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       setTempStartDate('');
       setTempEndDate('');
     } else if (p === 'this_month') {
-      const firstDay = new Date(year, month, 1).toISOString().split('T')[0];
-      const lastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const firstDay = toISODate(new Date(year, month, 1));
+      const lastDay = toISODate(new Date(year, month + 1, 0));
       onChange({ startDate: firstDay, endDate: lastDay });
       setTempStartDate(firstDay);
       setTempEndDate(lastDay);
     } else if (p === 'last_month') {
-      const firstDay = new Date(year, month - 1, 1).toISOString().split('T')[0];
-      const lastDay = new Date(year, month, 0).toISOString().split('T')[0];
+      const firstDay = toISODate(new Date(year, month - 1, 1));
+      const lastDay = toISODate(new Date(year, month, 0));
       onChange({ startDate: firstDay, endDate: lastDay });
       setTempStartDate(firstDay);
       setTempEndDate(lastDay);
     } else if (p === 'this_year') {
-      const firstDay = new Date(year, 0, 1).toISOString().split('T')[0];
-      const lastDay = new Date(year, 11, 31).toISOString().split('T')[0];
+      const firstDay = toISODate(new Date(year, 0, 1));
+      const lastDay = toISODate(new Date(year, 11, 31));
       onChange({ startDate: firstDay, endDate: lastDay });
       setTempStartDate(firstDay);
       setTempEndDate(lastDay);
@@ -109,11 +111,6 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // Adjust starting day (Monday = 0 instead of Sunday = 0)
   const adjustedFirstDay = (firstDayOfMonth + 6) % 7;
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const monthNamesFR = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ];
 
   const handleDateClick = (dayStr: string) => {
     onPresetChange('custom');
@@ -150,16 +147,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     if (preset === 'this_year') return 'Cette année';
 
     if (dateRange.startDate && dateRange.endDate) {
-      const formatDateFR = (str: string) => {
-        const parts = str.split('-');
-        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        return str;
-      };
       return `${formatDateFR(dateRange.startDate)} - ${formatDateFR(dateRange.endDate)}`;
     }
     if (dateRange.startDate) {
-      const parts = dateRange.startDate.split('-');
-      return `Depuis le ${parts[2]}/${parts[1]}/${parts[0]}`;
+      return `Depuis le ${formatDateFR(dateRange.startDate)}`;
     }
     return 'Calendrier & Période';
   };
@@ -219,26 +210,26 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <div className="grid grid-cols-2 gap-2 my-3 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
             <div>
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Du :</label>
-              <input
-                type="date"
+              <FrenchDateInput
                 value={tempStartDate}
-                onChange={(e) => {
-                  setTempStartDate(e.target.value);
+                onChange={(v) => {
+                  setTempStartDate(v);
                   onPresetChange('custom');
                 }}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                variant="dark"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Au :</label>
-              <input
-                type="date"
+              <FrenchDateInput
                 value={tempEndDate}
-                onChange={(e) => {
-                  setTempEndDate(e.target.value);
+                onChange={(v) => {
+                  setTempEndDate(v);
                   onPresetChange('custom');
                 }}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                variant="dark"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -254,7 +245,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             </button>
 
             <span className="font-extrabold text-xs text-slate-200">
-              {monthNamesFR[viewMonth]} {viewYear}
+              {MONTHS_FR[viewMonth]} {viewYear}
             </span>
 
             <button
@@ -268,13 +259,9 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
           {/* Calendar Day Labels */}
           <div className="grid grid-cols-7 text-center text-[10px] font-extrabold text-slate-500 mb-1">
-            <span>Lun</span>
-            <span>Mar</span>
-            <span>Mer</span>
-            <span>Jeu</span>
-            <span>Ven</span>
-            <span>Sam</span>
-            <span>Dim</span>
+            {DAYS_FR_SHORT.map((d) => (
+              <span key={d}>{d}</span>
+            ))}
           </div>
 
           {/* Calendar Grid */}

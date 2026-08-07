@@ -4,7 +4,6 @@ import {
   Printer,
   Copy,
   Check,
-  Building2,
   User,
   CreditCard,
   ShieldCheck,
@@ -27,12 +26,21 @@ import {
   Stamp,
   PenTool,
   Ruler,
+  Percent,
   Image as ImageIcon,
 } from 'lucide-react';
 import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
-import { downloadPDF, printDocument } from '../../utils/pdfGenerator';
+import {
+  downloadPDF,
+  preparePdfVisualPreview,
+  disposePdfVisualPreview,
+  printDocument,
+  type PdfLayoutMeasure,
+} from '../../utils/pdfGenerator';
 import { getStatusInfo } from '../../utils/status';
+import { formatDateFR } from '../../utils/date';
+import { PdfPageBreakModal } from './PdfPageBreakModal';
 
 interface DocumentPDFPreviewProps {
   document: InvoiceDocument;
@@ -72,12 +80,19 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     showStamp: doc.previewOptions?.showStamp ?? true,
     showSignature: doc.previewOptions?.showSignature ?? true,
     showDimensions: doc.previewOptions?.showDimensions ?? doc.items.some(item => Boolean(item.length || item.width)),
+    showDiscount: doc.previewOptions?.showDiscount ?? true,
     stampPosition: doc.previewOptions?.stampPosition ?? { x: 55, y: 81, width: 130 },
     signaturePosition: doc.previewOptions?.signaturePosition ?? { x: 72, y: 83, width: 140 },
     logoWidth: doc.previewOptions?.logoWidth ?? 160,
+    pageBreakAfterModules: doc.previewOptions?.pageBreakAfterModules ?? [],
+    pullToPreviousPageModules: doc.previewOptions?.pullToPreviousPageModules ?? [],
+    hiddenPdfPageStarts: doc.previewOptions?.hiddenPdfPageStarts ?? [],
   });
 
   const [showOptionsBar, setShowOptionsBar] = React.useState(false);
+  const [showPageBreakModal, setShowPageBreakModal] = React.useState(false);
+  const [pdfLayout, setPdfLayout] = React.useState<PdfLayoutMeasure | null>(null);
+  const [isCapturingPreview, setIsCapturingPreview] = React.useState(false);
   const optionsRef = React.useRef(options);
   React.useEffect(() => {
     optionsRef.current = options;
@@ -97,9 +112,16 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       showStamp: doc.previewOptions?.showStamp ?? prev.showStamp,
       showSignature: doc.previewOptions?.showSignature ?? prev.showSignature,
       showDimensions: doc.previewOptions?.showDimensions ?? prev.showDimensions,
+      showDiscount: doc.previewOptions?.showDiscount ?? prev.showDiscount,
       stampPosition: doc.previewOptions?.stampPosition ?? prev.stampPosition,
       signaturePosition: doc.previewOptions?.signaturePosition ?? prev.signaturePosition,
       logoWidth: doc.previewOptions?.logoWidth ?? prev.logoWidth ?? 160,
+      pageBreakAfterModules:
+        doc.previewOptions?.pageBreakAfterModules ?? prev.pageBreakAfterModules ?? [],
+      pullToPreviousPageModules:
+        doc.previewOptions?.pullToPreviousPageModules ?? prev.pullToPreviousPageModules ?? [],
+      hiddenPdfPageStarts:
+        doc.previewOptions?.hiddenPdfPageStarts ?? prev.hiddenPdfPageStarts ?? [],
     }));
   }, [doc.id, doc.updatedAt, doc.previewOptions]);
 
@@ -203,7 +225,46 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   const amountInWords = doc.amountInWords || numberToWordsFR(totals.totalTTC, `Francs ${doc.currency || 'CFA'}`);
   const statusInfo = getStatusInfo(doc.status);
 
-  const handleDownload = async () => {
+  const openDownloadPlanner = async () => {
+    if (isExporting || isCapturingPreview) return;
+    setShowPageBreakModal(true);
+    setIsCapturingPreview(true);
+    setPdfLayout(null);
+    try {
+      const layout = await preparePdfVisualPreview(elementId);
+      setPdfLayout(layout);
+    } finally {
+      setIsCapturingPreview(false);
+    }
+  };
+
+  const closeDownloadPlanner = () => {
+    if (isExporting) return;
+    setShowPageBreakModal(false);
+    disposePdfVisualPreview();
+    setPdfLayout(null);
+  };
+
+  const patchPreviewOptions = (patch: Partial<DocumentPreviewOptions>) => {
+    const updated = { ...optionsRef.current, ...patch };
+    optionsRef.current = updated as typeof options;
+    setOptions(updated as typeof options);
+    if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
+  };
+
+  const updatePageBreaks = (ids: string[]) => {
+    patchPreviewOptions({ pageBreakAfterModules: ids });
+  };
+
+  const updatePagePulls = (ids: string[]) => {
+    patchPreviewOptions({ pullToPreviousPageModules: ids });
+  };
+
+  const updateHiddenPages = (starts: number[]) => {
+    patchPreviewOptions({ hiddenPdfPageStarts: starts });
+  };
+
+  const confirmDownload = async () => {
     if (isExporting) return;
     setIsExporting(true);
     setDownloadSuccess(false);
@@ -212,8 +273,19 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
         /\s+/g,
         '_'
       );
-      const success = await downloadPDF(elementId, `${doc.type}_${doc.number}_${clientNameClean}`);
+      const success = await downloadPDF(
+        elementId,
+        `${doc.type}_${doc.number}_${clientNameClean}`,
+        {
+          breakAfterModuleIds: optionsRef.current.pageBreakAfterModules || [],
+          pullToPreviousModuleIds: optionsRef.current.pullToPreviousPageModules || [],
+          hiddenPageStarts: optionsRef.current.hiddenPdfPageStarts || [],
+        }
+      );
       if (success) {
+        setShowPageBreakModal(false);
+        disposePdfVisualPreview();
+        setPdfLayout(null);
         setDownloadSuccess(true);
         window.setTimeout(() => setDownloadSuccess(false), 3000);
       }
@@ -227,7 +299,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   };
 
   const handleCopySummary = () => {
-    const text = `${isDevis ? 'DEVIS' : 'FACTURE'} N° ${doc.number} - ${doc.clientInfo.name}\nTotal TTC : ${formatFCFA(totals.totalTTC, doc.currency)}\nDate : ${doc.date}`;
+    const text = `${isDevis ? 'DEVIS' : 'FACTURE'} N° ${doc.number} - ${doc.clientInfo.name}\nTotal TTC : ${formatFCFA(totals.totalTTC, doc.currency)}\nDate : ${formatDateFR(doc.date)}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -235,9 +307,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
   // Check if dimensions (length and width) are enabled for display
   const hasDimensions = options.showDimensions;
+  const hasDiscount = options.showDiscount;
 
   return (
     <div className="space-y-5">
+      <PdfPageBreakModal
+        open={showPageBreakModal}
+        layout={pdfLayout}
+        breakAfterModuleIds={options.pageBreakAfterModules || []}
+        pullToPreviousModuleIds={options.pullToPreviousPageModules || []}
+        hiddenPageStarts={options.hiddenPdfPageStarts || []}
+        onChangeBreaks={updatePageBreaks}
+        onChangePulls={updatePagePulls}
+        onChangeHiddenPages={updateHiddenPages}
+        onConfirmDownload={confirmDownload}
+        onClose={closeDownloadPlanner}
+        isExporting={isExporting}
+        isCapturingPreview={isCapturingPreview}
+        documentLabel={`${isDevis ? 'Devis' : 'Facture'} ${doc.number}`}
+      />
+
       {/* Top Action Toolbar */}
       <div className="flex flex-col gap-3 bg-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-xl border border-slate-800 sticky top-14 sm:top-16 z-30">
         <div className="flex flex-wrap items-center gap-2">
@@ -326,7 +415,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           </button>
 
           <button
-            onClick={handleDownload}
+            onClick={openDownloadPlanner}
             disabled={isExporting}
             className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 ${
               downloadSuccess
@@ -344,7 +433,8 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span>{isExporting ? 'Génération…' : 'Télécharger PDF'}</span>
+                <span className="sm:hidden">{isExporting ? 'Génération…' : 'PDF'}</span>
+                <span className="hidden sm:inline">{isExporting ? 'Génération…' : 'Préparer le PDF'}</span>
               </>
             )}
           </button>
@@ -535,6 +625,21 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               <Ruler className="w-4 h-4 text-blue-700 shrink-0" />
               <span className="text-left leading-tight">Colonnes Hauteur / Largeur</span>
             </button>
+
+            {/* Colonne Remise */}
+            <button
+              type="button"
+              onClick={() => toggleOption('showDiscount')}
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                options.showDiscount
+                  ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-2xs'
+                  : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {options.showDiscount ? <CheckSquare className="w-4 h-4 text-slate-950 shrink-0" /> : <Square className="w-4 h-4 text-slate-400 shrink-0" />}
+              <Percent className="w-4 h-4 text-blue-700 shrink-0" />
+              <span className="text-left leading-tight">Colonne Remise</span>
+            </button>
           </div>
         </div>
       )}
@@ -657,14 +762,19 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
           <div>
             {/* Header: Company Profile & Document Metadata */}
-            <div data-pdf-keep className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200/80">
+            <div
+              data-pdf-module="header"
+              data-pdf-module-label="En-tête & infos document"
+              data-pdf-keep
+              className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200/80"
+            >
               {/* Emitter Profile */}
               <div className="max-w-[390px] space-y-1.5">
-                {profile.logoUrl && !imgError ? (
+                {profile.logoUrl && !imgError && (
                   <div className="group relative inline-block mb-3 max-w-full">
                     <img
                       src={profile.logoUrl}
-                      alt={`Logo ${profile.companyName}`}
+                      alt="Logo"
                       onError={() => setImgError(true)}
                       className="object-contain block max-w-full h-auto"
                       style={{
@@ -696,14 +806,8 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                       </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white font-black text-sm rounded-xl tracking-wider mb-2 shadow-xs">
-                    <Building2 className="w-4 h-4 text-blue-400" />
-                    <span>{profile.companyName || 'ENTREPRISE'}</span>
-                  </div>
                 )}
 
-                <h1 className="font-black text-base text-slate-900 uppercase tracking-tight">{profile.companyName}</h1>
                 {profile.tagline && <p className="text-[11px] text-slate-500 italic font-medium">{profile.tagline}</p>}
 
                 <div className="text-[11px] text-slate-600 space-y-1 pt-1">
@@ -779,7 +883,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                       <Calendar className="w-3 h-3 text-slate-400" />
                       <span>Émission :</span>
                     </span>
-                    <span className="font-bold text-slate-900 font-mono">{doc.date}</span>
+                    <span className="font-bold text-slate-900 font-mono">{formatDateFR(doc.date)}</span>
                   </div>
                   {!isDevis && (
                     <div className="flex justify-between items-center gap-4">
@@ -787,7 +891,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                         <Calendar className="w-3 h-3 text-slate-400" />
                         <span>Échéance :</span>
                       </span>
-                      <span className="font-bold text-slate-900 font-mono">{doc.dueDate}</span>
+                      <span className="font-bold text-slate-900 font-mono">{formatDateFR(doc.dueDate)}</span>
                     </div>
                   )}
                 </div>
@@ -795,7 +899,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             </div>
 
             {/* Client Destination Box */}
-            <div data-pdf-keep className={`my-6 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center ${
+            <div
+              data-pdf-module="client"
+              data-pdf-module-label="Bloc client"
+              data-pdf-keep
+              className={`my-6 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center ${
               isDevis ? 'border-l-4 border-l-sky-600' : 'border-l-4 border-l-blue-700'
             }`}>
               <div className="space-y-1 flex-1">
@@ -828,7 +936,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             </div>
 
             {/* Line Items Table — les <tr> restent entiers (coupure entre lignes uniquement) */}
-            <div className="mb-6 overflow-hidden rounded-xl border border-slate-200/90 shadow-xs">
+            <div
+              data-pdf-module="items"
+              data-pdf-module-label="Tableau des articles"
+              className="mb-6 overflow-hidden rounded-xl border border-slate-200/90 shadow-xs"
+            >
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider">
@@ -841,7 +953,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     )}
                     <th className="py-3 px-2 text-center w-14">Qté</th>
                     <th className="py-3 px-3 text-right w-32">P.U. ({doc.currency})</th>
-                    <th className="py-3 px-2 text-center w-16">Remise</th>
+                    {hasDiscount && <th className="py-3 px-2 text-center w-16">Remise</th>}
                     <th className="py-3 px-4 text-right w-36">Total HT ({doc.currency})</th>
                   </tr>
                 </thead>
@@ -868,7 +980,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                         )}
                         <td className="py-3 px-2 text-center text-slate-900 font-bold text-xs">{item.quantity}</td>
                         <td className="py-3 px-3 text-right text-slate-800 font-mono text-xs font-semibold">{formatFCFA(item.unitPrice, '')}</td>
-                        <td className="py-3 px-2 text-center text-slate-500 font-mono text-xs">{item.discount ? `${item.discount}%` : '-'}</td>
+                        {hasDiscount && (
+                          <td className="py-3 px-2 text-center text-slate-500 font-mono text-xs">{item.discount ? `${item.discount}%` : '-'}</td>
+                        )}
                         <td className="py-3 px-4 text-right font-mono font-black text-slate-900 text-xs">{formatFCFA(netHT, '')}</td>
                       </tr>
                     );
@@ -878,7 +992,12 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             </div>
 
             {/* Financial Totals & Optional Payment Section */}
-            <div data-pdf-keep className={`flex flex-col sm:flex-row gap-6 mb-6 ${options.showPaymentDetails ? 'justify-between items-start' : 'justify-end items-end'}`}>
+            <div
+              data-pdf-module="totals"
+              data-pdf-module-label="Totaux & paiement"
+              data-pdf-keep
+              className={`flex flex-col sm:flex-row gap-6 mb-6 ${options.showPaymentDetails ? 'justify-between items-start' : 'justify-end items-end'}`}
+            >
               {/* Optional Payment Details & Bank RIB */}
               {options.showPaymentDetails && (
                 <div className="flex-1 w-full bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90 space-y-2 text-[11px]">
@@ -941,7 +1060,12 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
             {/* Amount in Words Certification Banner */}
             {options.showAmountInWords && (
-              <div data-pdf-keep className="p-4 bg-gradient-to-r from-slate-100/90 to-slate-50 rounded-2xl border-l-4 border-l-blue-600 border-y border-r border-slate-200/80 mb-6 text-xs flex items-center gap-3 shadow-2xs">
+              <div
+                data-pdf-module="amountWords"
+                data-pdf-module-label="Montant en lettres"
+                data-pdf-keep
+                className="p-4 bg-gradient-to-r from-slate-100/90 to-slate-50 rounded-2xl border-l-4 border-l-blue-600 border-y border-r border-slate-200/80 mb-6 text-xs flex items-center gap-3 shadow-2xs"
+              >
                 <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
                 <div>
                   <span className="font-bold text-slate-700">Arrêté {isDevis ? 'le présent devis' : 'la présente facture'} à la somme de : </span>
@@ -952,7 +1076,12 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
             {/* Notes & Terms */}
             {(doc.notes || doc.termsAndConditions) && (
-              <div data-pdf-keep className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] text-slate-600 border-t border-slate-200/80 pt-4 mb-6">
+              <div
+                data-pdf-module="notes"
+                data-pdf-module-label="Notes & conditions"
+                data-pdf-keep
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] text-slate-600 border-t border-slate-200/80 pt-4 mb-6"
+              >
                 {doc.notes && (
                   <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/70 space-y-1">
                     <h5 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
@@ -976,7 +1105,12 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           </div>
 
           {/* Footer: Signatures & Legal Info */}
-          <div data-pdf-keep className="pt-6 border-t border-slate-200 mt-6 space-y-8">
+          <div
+            data-pdf-module="footer"
+            data-pdf-module-label="Signatures & mentions"
+            data-pdf-keep
+            className="pt-6 border-t border-slate-200 mt-6 space-y-8"
+          >
             {options.showSignatures && (
               <div className="flex justify-between items-end text-[11px] text-slate-600 px-6">
                 <div className="text-center w-48">
@@ -988,13 +1122,18 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 <div className="text-center w-56">
                   <p className="font-bold text-slate-800 mb-12">Pour l'Émetteur / Cachet</p>
                   <div className="border-b border-dashed border-slate-300 w-full mb-1"></div>
-                  <p className="text-[9px] text-slate-400">{profile.companyName}</p>
+                  <p className="text-[9px] text-slate-400">Cachet et signature</p>
                 </div>
               </div>
             )}
 
             <div className="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 space-y-0.5">
-              <p className="font-semibold text-slate-500">{profile.legalFooter || `${profile.companyName} - NIF : ${profile.nif || 'N/A'} - RCCM : ${profile.rccm || 'N/A'}`}</p>
+              <p className="font-semibold text-slate-500">
+                {profile.legalFooter ||
+                  [profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
+                    .filter(Boolean)
+                    .join(' - ')}
+              </p>
               <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
             </div>
           </div>
