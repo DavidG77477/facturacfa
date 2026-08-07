@@ -3,6 +3,7 @@ import { Lock, Mail, User as UserIcon, Shield, Building, KeyRound, CheckCircle2,
 import { User } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { signIn, signUp } from '../../services/database';
+import { ThemeToggle } from '../Common/ThemeToggle';
 
 interface AuthModalProps {
   currentUser: User | null;
@@ -172,6 +173,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Auth form panel */}
         <section className="relative flex items-center justify-center px-5 sm:px-8 py-10 lg:py-16 bg-[var(--color-brand-paper)]">
+          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+            <ThemeToggle
+              className="!border-brand-ink/15 !text-brand-ink dark:!border-white/15 dark:!text-brand-sand hover:!bg-brand-mist dark:hover:!bg-white/10"
+            />
+          </div>
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-60"

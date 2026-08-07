@@ -4,9 +4,13 @@
 @source "../index.html";
 @source "./**/*.{js,ts,jsx,tsx}";
 
+/* Mode sombre via classe .dark sur <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-figures: "IBM Plex Mono", ui-monospace, monospace;
   --color-brand-ink: #0a3d3a;
   --color-brand-deep: #062e2c;
   --color-brand-mid: #147a72;
@@ -25,11 +29,123 @@
     background-color: var(--color-brand-paper);
     color: #1e293b;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
+
+  html.dark {
+    --color-brand-paper: #0b1413;
+    --color-brand-mist: #152422;
+    --color-brand-sand: #d8d0c4;
+    --color-brand-ink: #0f4f4a;
+    --color-brand-deep: #071f1d;
+    --color-brand-mid: #1a9a8f;
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    background-color: var(--color-brand-paper);
+    color: #e2e8f0;
+  }
+}
+
+/* Surfaces app en dark — le papier document (#pdf-preview-*) reste clair */
+html.dark .bg-white,
+html.dark .bg-white\/95,
+html.dark .bg-white\/80 {
+  background-color: #13201e !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/90,
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/80 {
+  background-color: #182826 !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/90,
+html.dark .border-brand-ink\/8,
+html.dark .border-brand-ink\/10 {
+  border-color: rgba(45, 212, 191, 0.12) !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(45, 212, 191, 0.1) !important;
+}
+
+html.dark .bg-brand-mist,
+html.dark .bg-brand-mist\/70 {
+  background-color: #1a2e2b !important;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-brand-mist:hover {
+  background-color: #1f3834 !important;
+}
+
+/* Document A4 : forcer le rendu clair (PDF / aperçu inchangés) */
+html.dark [id^="pdf-preview-"],
+html.dark [id^="pdf-preview-"] * {
+  color-scheme: light;
+}
+
+html.dark [id^="pdf-preview-"].bg-white,
+html.dark [id^="pdf-preview-"] .bg-white,
+html.dark [id^="pdf-preview-"] .bg-white\/95,
+html.dark [id^="pdf-preview-"] .bg-slate-50,
+html.dark [id^="pdf-preview-"] .bg-slate-50\/40,
+html.dark [id^="pdf-preview-"] .bg-slate-50\/80,
+html.dark [id^="pdf-preview-"] .bg-slate-50\/90,
+html.dark [id^="pdf-preview-"] .bg-slate-100,
+html.dark [id^="pdf-preview-"] .bg-slate-100\/60 {
+  background-color: revert !important;
+}
+
+html.dark [id^="pdf-preview-"] .text-slate-900,
+html.dark [id^="pdf-preview-"] .text-slate-800,
+html.dark [id^="pdf-preview-"] .text-slate-700,
+html.dark [id^="pdf-preview-"] .text-slate-600,
+html.dark [id^="pdf-preview-"] .text-slate-500,
+html.dark [id^="pdf-preview-"] .text-slate-400 {
+  color: revert !important;
+}
+
+html.dark [id^="pdf-preview-"] .border-slate-100,
+html.dark [id^="pdf-preview-"] .border-slate-200,
+html.dark [id^="pdf-preview-"] .border-slate-200\/80,
+html.dark [id^="pdf-preview-"] .border-slate-200\/90 {
+  border-color: revert !important;
 }
 
 /* Surfaces & controls partagés (chrome app uniquement) */
 @layer components {
+  .kpi-figure {
+    font-family: var(--font-figures);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
   .app-card {
     background: #ffffff;
     border: 1px solid color-mix(in srgb, var(--color-brand-ink) 8%, transparent);

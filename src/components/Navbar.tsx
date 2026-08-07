@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText, Users, Building, BarChart3, Trash2, LogOut } from 'lucide-react';
 import { BusinessProfile } from '../types';
+import { ThemeToggle } from './Common/ThemeToggle';
 
 interface NavbarProps {
   activeTab: 'documents' | 'clients' | 'analytics' | 'settings' | 'trash';
@@ -96,6 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
               <div className="hidden lg:flex items-center gap-2 pr-2 border-r border-white/10">
                 <div className="w-8 h-8 rounded-lg bg-brand-mid/25 text-brand-glow flex items-center justify-center font-bold text-xs border border-brand-glow/20">
                   {displayName.charAt(0).toUpperCase()}
