@@ -160,13 +160,13 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
           }`}
         />
       ))}
-      {/* Couche opaque pour lisibilité */}
+      {/* Voile léger pour garder le texte lisible sans assombrir la photo */}
       <div
         aria-hidden
         className="absolute inset-0 z-[1]"
         style={{
           background:
-            'linear-gradient(120deg, rgba(6,46,44,0.88) 0%, rgba(10,61,58,0.78) 45%, rgba(6,46,44,0.72) 100%)',
+            'linear-gradient(120deg, rgba(6,46,44,0.52) 0%, rgba(10,61,58,0.38) 48%, rgba(6,46,44,0.28) 100%)',
         }}
       />
 

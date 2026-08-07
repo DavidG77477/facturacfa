@@ -58,7 +58,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-ink/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-xl w-full p-6 sm:p-8 relative">
+      <div className="glass-card shadow-xl max-w-xl w-full p-6 sm:p-8 relative">
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">

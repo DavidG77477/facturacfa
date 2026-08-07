@@ -140,7 +140,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div className="glass-card p-6 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Building className="w-6 h-6 text-brand-mid" />
@@ -167,7 +167,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* LOGO DE L'ENTREPRISE SECTION */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="glass-card p-6 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-brand-mid" />
@@ -272,7 +272,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
           </div>
         </div>
         {/* CACHET OFFICIEL ET SIGNATURE SECTION */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+        <div className="glass-card p-6 space-y-6">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div>
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -399,7 +399,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         </div>
 
         {/* Identity & Fiscal IDs */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="glass-card p-6 space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
             <Building className="w-4 h-4 text-brand-mid" />
             <span>Identité & Numéros Fiscaux</span>
@@ -521,7 +521,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         </div>
 
         {/* Address & Contact Details */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="glass-card p-6 space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
             <MapPin className="w-4 h-4 text-brand-mid" />
             <span>Adresse & Coordonnées</span>
@@ -593,7 +593,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         </div>
 
         {/* Banking & Mobile Money Payment RIB */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="glass-card p-6 space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-brand-mid" />
             <span>Coordonnées Bancaires & Mobile Money</span>
@@ -657,7 +657,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         </div>
 
         {/* Legal Footer */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+        <div className="glass-card p-6 space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
             <FileText className="w-4 h-4 text-brand-mid" />
             <span>Pied de page Légal</span>

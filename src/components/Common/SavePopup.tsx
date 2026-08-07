@@ -27,7 +27,7 @@ export const SavePopup: React.FC<SavePopupProps> = ({
       <div
         role="alertdialog"
         aria-live="polite"
-        className="relative bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-8 text-center animate-[fadeIn_0.2s_ease-out]"
+        className="relative glass-card rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center animate-[fadeIn_0.2s_ease-out]"
       >
         <button
           type="button"

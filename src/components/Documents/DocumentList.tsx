@@ -268,7 +268,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires Réglé</span>
             <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
@@ -279,7 +279,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </div>
         </div>
 
-        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">En Attente de Règlement</span>
             <div className="kpi-figure text-2xl text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
@@ -290,7 +290,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </div>
         </div>
 
-        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Encours Devis</span>
             <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
@@ -303,7 +303,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       </div>
 
       {/* Main Filter & Search Section */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+      <div className="glass-card p-5 space-y-4">
         {/* Top bar: Type Filter Tabs, Status Filter & Action Buttons */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -445,7 +445,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       </div>
 
       {/* Documents — cartes mobile / tableau desktop */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="glass-card overflow-hidden">
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-12 p-6">
             <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -714,7 +714,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       {/* Delete Confirmation Modal */}
       {documentToDelete && (
         <div className="fixed inset-0 bg-brand-ink/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+          <div className="glass-card max-w-md w-full p-6 shadow-2xl">
             <div className="flex items-center gap-3 text-rose-600 mb-4">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                 <Trash2 className="w-5 h-5" />

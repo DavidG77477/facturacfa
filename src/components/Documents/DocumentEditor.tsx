@@ -645,7 +645,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & Navigation */}
-      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white/95 backdrop-blur p-3 sm:p-5 rounded-2xl border border-brand-ink/10">
+      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 glass-card p-3 sm:p-5">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <button
             onClick={handleCancel}
@@ -717,7 +717,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Main Document Details Card */}
-          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+          <div className="glass-card p-4 sm:p-6 space-y-5 sm:space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pb-5 sm:pb-6 border-b border-slate-100">
               {/* Type Switcher */}
               <div>
@@ -939,7 +939,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           </div>
 
           {/* Dynamic Items Table */}
-          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <div className="glass-card p-4 sm:p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">Articles & Prestations</h3>
               
@@ -1259,7 +1259,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           </div>
 
           {/* Terms & Notes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 glass-card p-4 sm:p-6">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
                 Notes / Remarques au client

@@ -126,7 +126,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
       </div>
 
       {/* Search and Filter Tabs */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="glass-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Search Bar */}
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -178,7 +178,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
 
       {/* Trash Content List */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center space-y-3">
+        <div className="glass-card p-12 rounded-3xl text-center space-y-3">
           <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
             <Trash2 className="w-8 h-8" />
           </div>
@@ -201,7 +201,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
             return (
               <div
                 key={trashItem.id}
-                className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:border-slate-300 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                className="glass-card p-4 hover:border-slate-300 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
               >
                 {/* Info Block */}
                 <div className="flex items-start gap-3 flex-1 min-w-0">

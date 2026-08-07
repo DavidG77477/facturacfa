@@ -41,7 +41,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card p-5">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <ListTodo className="w-6 h-6 text-brand-mid" />
@@ -55,7 +55,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-3"
+        className="glass-card p-4 sm:p-5 flex flex-col sm:flex-row gap-3"
       >
         <input
           type="text"
@@ -90,7 +90,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
               filter === chip.id
                 ? 'bg-brand-ink text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-brand-mist'
+                : 'bg-white/45 backdrop-blur-sm text-slate-600 border border-white/50 hover:bg-white/70'
             }`}
           >
             {chip.label}
@@ -99,7 +99,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
       </div>
 
       {visible.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-dashed border-slate-200 px-6 py-14 text-center">
+        <div className="glass-card border border-dashed border-white/40 px-6 py-14 text-center">
           <div className="mx-auto w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center mb-3">
             <CheckSquare className="w-6 h-6" />
           </div>
@@ -119,7 +119,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
           {visible.map((todo) => (
             <li
               key={todo.id}
-              className="hover-lift group bg-white rounded-2xl border border-slate-200/80 shadow-xs px-3 sm:px-4 py-3 flex items-center gap-3"
+              className="hover-lift group glass-card px-3 sm:px-4 py-3 flex items-center gap-3"
             >
               <button
                 type="button"

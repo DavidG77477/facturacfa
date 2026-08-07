@@ -98,6 +98,28 @@ html.dark .bg-white\/80 {
   background-color: #13201e !important;
 }
 
+html.dark .app-card,
+html.dark .glass-card {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(
+      150deg,
+      rgba(30, 48, 46, 0.9) 0%,
+      rgba(19, 32, 30, 0.84) 50%,
+      rgba(15, 40, 38, 0.88) 100%
+    );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
+html.dark .app-card::before,
+html.dark .glass-card::before {
+  background:
+    radial-gradient(120% 70% at 10% -15%, rgba(255, 255, 255, 0.1), transparent 55%),
+    radial-gradient(80% 50% at 100% 0%, rgba(45, 212, 191, 0.14), transparent 50%);
+}
+
 html.dark .bg-slate-50,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-50\/90,
@@ -240,11 +262,45 @@ html.dark [id^="pdf-preview-"] .border-slate-200\/90 {
       0 10px 24px rgba(45, 212, 191, 0.18);
   }
 
-  .app-card {
-    background: #ffffff;
-    border: 1px solid color-mix(in srgb, var(--color-brand-ink) 8%, transparent);
+  .app-card,
+  .glass-card {
+    position: relative;
+    isolation: isolate;
     border-radius: 1rem;
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-brand-ink) 4%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background:
+      linear-gradient(
+        150deg,
+        rgba(255, 255, 255, 0.82) 0%,
+        rgba(255, 255, 255, 0.7) 48%,
+        rgba(240, 246, 244, 0.78) 100%
+      );
+    backdrop-filter: blur(16px) saturate(1.35);
+    -webkit-backdrop-filter: blur(16px) saturate(1.35);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.7) inset,
+      0 -1px 0 rgba(10, 61, 58, 0.04) inset,
+      0 12px 32px rgba(6, 46, 44, 0.08),
+      0 2px 8px rgba(6, 46, 44, 0.04);
+  }
+
+  .app-card::before,
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(120% 70% at 10% -15%, rgba(255, 255, 255, 0.7), transparent 55%),
+      radial-gradient(80% 50% at 100% 0%, rgba(45, 212, 191, 0.12), transparent 50%);
+  }
+
+  .app-card > *,
+  .glass-card > * {
+    position: relative;
+    z-index: 1;
   }
 
   .app-btn-primary {
@@ -369,16 +425,16 @@ main [role="button"] {
   position: relative;
   overflow: hidden;
   border-radius: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   background:
     linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.62) 0%,
-      rgba(255, 255, 255, 0.28) 42%,
-      rgba(231, 240, 238, 0.38) 100%
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 255, 255, 0.62) 42%,
+      rgba(231, 240, 238, 0.72) 100%
     );
-  backdrop-filter: blur(22px) saturate(1.55);
-  -webkit-backdrop-filter: blur(22px) saturate(1.55);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.65) inset,
     0 -1px 0 rgba(10, 61, 58, 0.04) inset,
@@ -519,13 +575,13 @@ main [role="button"] {
 }
 
 html.dark .news-glass {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.14);
   background:
     linear-gradient(
       145deg,
-      rgba(30, 48, 46, 0.72) 0%,
-      rgba(19, 32, 30, 0.55) 45%,
-      rgba(15, 40, 38, 0.62) 100%
+      rgba(30, 48, 46, 0.9) 0%,
+      rgba(19, 32, 30, 0.84) 45%,
+      rgba(15, 40, 38, 0.88) 100%
     );
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
