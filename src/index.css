@@ -13,6 +13,66 @@
   --color-brand-glow: #2dd4bf;
   --color-brand-sand: #f3ebe0;
   --color-brand-paper: #faf7f2;
+  --color-brand-mist: #e7f0ee;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--color-brand-paper);
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Surfaces & controls partagés (chrome app uniquement) */
+@layer components {
+  .app-card {
+    background: #ffffff;
+    border: 1px solid color-mix(in srgb, var(--color-brand-ink) 8%, transparent);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-brand-ink) 4%, transparent);
+  }
+
+  .app-btn-primary {
+    background: var(--color-brand-ink);
+    color: var(--color-brand-paper);
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .app-btn-primary:hover {
+    background: var(--color-brand-deep);
+  }
+
+  .app-btn-secondary {
+    background: var(--color-brand-mist);
+    color: var(--color-brand-ink);
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: background 0.15s ease;
+  }
+
+  .app-btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-brand-mid) 18%, white);
+  }
+
+  .app-input {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .app-input:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--color-brand-mid) 45%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-mid) 22%, transparent);
+  }
 }
 
 @keyframes auth-fade-up {

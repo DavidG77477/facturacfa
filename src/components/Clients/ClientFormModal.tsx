@@ -57,11 +57,11 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-ink/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-xl w-full p-6 sm:p-8 relative">
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
               <User className="w-5 h-5" />
             </div>
             <div>
@@ -93,7 +93,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 onClick={() => setClientType('entreprise')}
                 className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   clientType === 'entreprise'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-brand-ink text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                 }`}
               >
@@ -106,7 +106,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 onClick={() => setClientType('personne_physique')}
                 className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   clientType === 'personne_physique'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-brand-ink text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                 }`}
               >
@@ -129,7 +129,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={clientType === 'entreprise' ? "M. Ibrahim Konaté" : "Mme Kouamé Amenan"}
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
               </div>
             </div>
@@ -147,7 +147,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="AGRO-IVOIRE SA"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                   />
                 </div>
               </div>
@@ -156,8 +156,8 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
                   Type de client
                 </label>
-                <div className="px-3 py-2 bg-blue-50/80 border border-blue-200/80 rounded-xl text-blue-800 text-xs font-bold flex items-center gap-2">
-                  <User className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="px-3 py-2 bg-brand-mist/80 border border-brand-mid/25/80 rounded-xl text-brand-ink text-xs font-bold flex items-center gap-2">
+                  <User className="w-4 h-4 text-brand-mid shrink-0" />
                   <span>Particulier (Personne physique)</span>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contact@societe.ci"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
               </div>
             </div>
@@ -192,7 +192,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+225 07 00 00 00 00"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
               </div>
             </div>
@@ -209,7 +209,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Zone Industrielle de Yopougon, Lot 45"
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -224,7 +224,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Abidjan / Dakar"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -237,7 +237,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="Côte d'Ivoire / Sénégal"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -250,7 +250,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 value={nifRccm}
                 onChange={(e) => setNifRccm(e.target.value)}
                 placeholder="Ex: NIF: 1049283-X"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -266,7 +266,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Remarques particulières sur ce client..."
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -289,7 +289,7 @@ export const ClientFormModal: React.FC<ClientFormModalProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-semibold text-sm transition-colors flex items-center gap-2 shadow-sm cursor-pointer"
+              className="px-5 py-2 bg-brand-ink hover:bg-brand-deep disabled:opacity-60 text-white rounded-xl font-semibold text-sm transition-colors flex items-center gap-2 shadow-sm cursor-pointer"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>{isSaving ? 'Enregistrement…' : 'Enregistrer'}</span>

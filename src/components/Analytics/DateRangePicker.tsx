@@ -161,23 +161,23 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-slate-900 hover:bg-slate-950 text-slate-100 text-xs font-bold rounded-xl px-3.5 py-2 border border-slate-700/80 hover:border-slate-600 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+        className="bg-brand-ink hover:bg-slate-950 text-slate-100 text-xs font-bold rounded-xl px-3.5 py-2 border border-white/10 hover:border-slate-600 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
       >
-        <CalendarIcon className="w-3.5 h-3.5 text-blue-400" />
+        <CalendarIcon className="w-3.5 h-3.5 text-brand-glow" />
         <span>{getButtonLabel()}</span>
       </button>
 
       {/* Popover Calendar Card */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 text-white rounded-3xl shadow-2xl border border-slate-700 p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-brand-ink text-white rounded-3xl shadow-2xl border border-white/10 p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between pb-3 border-b border-brand-deep">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-blue-400" />
+              <CalendarIcon className="w-4 h-4 text-brand-glow" />
               <span className="font-extrabold text-sm text-white">Filtrer par Période</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-brand-deep transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -197,8 +197,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 onClick={() => applyPreset(p.id)}
                 className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
                   preset === p.id && !tempStartDate
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                    ? 'bg-brand-ink text-white shadow-xs'
+                    : 'bg-brand-deep text-slate-300 hover:bg-brand-mid/40 hover:text-white'
                 }`}
               >
                 {p.label}
@@ -207,7 +207,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </div>
 
           {/* Date range manual inputs */}
-          <div className="grid grid-cols-2 gap-2 my-3 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/60 text-xs">
+          <div className="grid grid-cols-2 gap-2 my-3 bg-brand-deep/70 p-2.5 rounded-2xl border border-white/10 text-xs">
             <div>
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Du :</label>
               <FrenchDateInput
@@ -217,7 +217,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   onPresetChange('custom');
                 }}
                 variant="dark"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-brand-ink border border-white/10 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-brand-mid"
               />
             </div>
             <div>
@@ -229,7 +229,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   onPresetChange('custom');
                 }}
                 variant="dark"
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full bg-brand-ink border border-white/10 rounded-xl px-2 py-1.5 pr-8 text-slate-100 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -239,7 +239,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <button
               onClick={prevMonth}
               type="button"
-              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+              className="p-1 rounded-lg bg-brand-deep hover:bg-brand-mid/40 text-slate-300 hover:text-white"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -251,7 +251,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <button
               onClick={nextMonth}
               type="button"
-              className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+              className="p-1 rounded-lg bg-brand-deep hover:bg-brand-mid/40 text-slate-300 hover:text-white"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -284,9 +284,9 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 dayStr > tempStartDate &&
                 dayStr < tempEndDate;
 
-              let cellStyle = 'bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:text-white';
+              let cellStyle = 'bg-brand-deep/50 text-slate-300 hover:bg-brand-mid/40 hover:text-white';
               if (isStart || isEnd) {
-                cellStyle = 'bg-blue-600 text-white font-black shadow-xs';
+                cellStyle = 'bg-brand-ink text-white font-black shadow-xs';
               } else if (isInRange) {
                 cellStyle = 'bg-blue-900/50 text-blue-200 font-semibold';
               }
@@ -305,7 +305,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </div>
 
           {/* Bottom Action Footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-brand-deep">
             <button
               type="button"
               onClick={handleReset}
@@ -318,7 +318,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <button
               type="button"
               onClick={handleApplyCustom}
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-3.5 py-1.5 bg-brand-ink hover:bg-brand-deep text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" />
               <span>Appliquer</span>

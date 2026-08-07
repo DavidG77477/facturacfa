@@ -29,7 +29,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-ink/60 backdrop-blur-xs p-4 animate-fade-in">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden space-y-0 transform transition-all">
         {/* Header Bar */}
         <div className={`p-5 flex items-start gap-4 border-b ${isPermanent ? 'bg-rose-50 border-rose-100' : 'bg-amber-50 border-amber-100'}`}>

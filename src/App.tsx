@@ -482,7 +482,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-brand-paper text-slate-800 flex flex-col font-sans">
       <Navbar
         activeTab={activeTab}
         setActiveTab={(tab) => {
@@ -509,7 +509,7 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
         {dataLoading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <Loader2 className="w-8 h-8 text-brand-mid animate-spin" />
           </div>
         ) : dataError ? (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl p-4 text-sm">
@@ -519,7 +519,7 @@ export default function App() {
           <div className="space-y-4">
             <button
               onClick={() => setPreviewDocument(null)}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs cursor-pointer"
+              className="px-4 py-2 bg-white border border-brand-ink/10 text-brand-ink hover:bg-brand-mist font-semibold rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Retour à la liste des documents</span>
@@ -630,16 +630,20 @@ export default function App() {
         />
       )}
 
-      <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+      <footer className="bg-white/80 border-t border-brand-ink/8 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <p>© {new Date().getFullYear()} FacturaCFA - Application de Facturation en Francs CFA (XOF / XAF)</p>
+          <p className="font-medium text-slate-600">
+            © {new Date().getFullYear()}{' '}
+            <span className="font-display font-bold text-brand-ink">FacturaCFA</span>
+            {' — '}Facturation en Francs CFA
+          </p>
           <div className="flex items-center gap-3 text-slate-400">
-            <span className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
-              <span>Données & fichiers sécurisés sur Supabase</span>
+            <span className="flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-brand-mid" />
+              <span>Données sécurisées sur Supabase</span>
             </span>
-            <span>•</span>
-            <span>Export PDF Haute Résolution</span>
+            <span className="text-brand-ink/20">·</span>
+            <span>Export PDF</span>
           </div>
         </div>
       </footer>

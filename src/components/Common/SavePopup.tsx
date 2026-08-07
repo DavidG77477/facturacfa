@@ -23,7 +23,7 @@ export const SavePopup: React.FC<SavePopupProps> = ({
   const isSuccess = type === 'success';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-ink/50 backdrop-blur-sm p-4">
       <div
         role="alertdialog"
         aria-live="polite"
@@ -39,8 +39,8 @@ export const SavePopup: React.FC<SavePopupProps> = ({
         </button>
 
         <div
-          className={`mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center ${
-            isSuccess ? 'bg-blue-50 text-blue-600' : 'bg-rose-50 text-rose-600'
+          className={`mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center ${
+            isSuccess ? 'bg-brand-mist text-brand-mid' : 'bg-rose-50 text-rose-600'
           }`}
         >
           {isSuccess ? (
@@ -59,7 +59,7 @@ export const SavePopup: React.FC<SavePopupProps> = ({
           type="button"
           onClick={onClose}
           className={`mt-6 w-full py-2.5 rounded-xl text-sm font-bold text-white cursor-pointer transition-colors ${
-            isSuccess ? 'bg-blue-600 hover:bg-blue-700' : 'bg-rose-600 hover:bg-rose-700'
+            isSuccess ? 'bg-brand-ink hover:bg-brand-deep' : 'bg-rose-600 hover:bg-rose-700'
           }`}
         >
           Fermer

@@ -87,7 +87,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
     <div className="space-y-6 animate-fade-in">
       {/* Toast Notification */}
       {restoredToast && (
-        <div className="bg-blue-600 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between text-xs font-bold animate-bounce">
+        <div className="bg-brand-ink text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between text-xs font-bold animate-bounce">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-blue-200" />
             <span>{restoredToast}</span>
@@ -96,7 +96,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
       )}
 
       {/* Header Banner */}
-      <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-brand-ink text-white p-6 rounded-3xl border border-brand-deep shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-black">
             <Trash2 className="w-6 h-6" />
@@ -135,7 +135,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
             placeholder="Rechercher dans la corbeille..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-mid focus:bg-white transition-all"
           />
         </div>
 
@@ -210,8 +210,8 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
                       isDoc
                         ? doc?.type === 'devis'
                           ? 'bg-amber-50 text-amber-600 border border-amber-200'
-                          : 'bg-blue-50 text-blue-600 border border-blue-200'
-                        : 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                          : 'bg-brand-mist text-brand-mid border border-brand-mid/25'
+                        : 'bg-brand-mist text-indigo-600 border border-brand-mid/25'
                     }`}
                   >
                     {isDoc ? <FileText className="w-5 h-5" /> : <Users className="w-5 h-5" />}
@@ -227,8 +227,8 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
                           isDoc
                             ? doc?.type === 'devis'
                               ? 'bg-amber-100 text-amber-800'
-                              : 'bg-blue-100 text-blue-800'
-                            : 'bg-indigo-100 text-indigo-800'
+                              : 'bg-brand-mist text-brand-ink'
+                            : 'bg-brand-mist text-indigo-800'
                         }`}
                       >
                         {isDoc ? (doc?.type === 'devis' ? 'Devis' : 'Facture') : 'Client'}
@@ -258,7 +258,7 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
                 <div className="flex items-center gap-2 self-end md:self-center shrink-0">
                   <button
                     onClick={() => handleRestore(trashItem)}
-                    className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-blue-200"
+                    className="px-3.5 py-2 bg-brand-mist hover:bg-brand-mist text-brand-ink font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer border border-brand-mid/25"
                     title="Restauration immédiate"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />

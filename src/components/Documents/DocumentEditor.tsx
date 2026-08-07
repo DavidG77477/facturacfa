@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowLeft, Plus, Trash2, Save, Eye, FileText, User, Calendar, Percent, Check, RefreshCw, AlertTriangle, ShieldCheck, Sparkles, CheckCircle2, Ruler, Loader2 } from 'lucide-react';
-import { BusinessProfile, Client, DocumentItem, DocumentType, InvoiceDocument, DocumentStatus, DocumentPreviewOptions } from '../../types';
+import { ArrowLeft, Plus, Trash2, Save, Eye, FileText, User, Calendar, Percent, Check, RefreshCw, AlertTriangle, ShieldCheck, Sparkles, CheckCircle2, Ruler, Loader2, Heading2 } from 'lucide-react';
+import { BusinessProfile, Client, DocumentItem, DocumentType, InvoiceDocument, DocumentStatus, DocumentPreviewOptions, isSectionItem } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
 import { isDocumentNumberUnique } from '../../utils/documentNumber';
 import { DocumentPDFPreview } from './DocumentPDFPreview';
@@ -88,7 +88,7 @@ const FillableCell: React.FC<FillableCellProps> = ({
 
   return (
     <td
-      className={`${inRange ? 'bg-blue-100/80 ring-1 ring-inset ring-blue-500/60' : ''} ${className}`}
+      className={`${inRange ? 'bg-brand-mist/80 ring-1 ring-inset ring-brand-mid/60' : ''} ${className}`}
       data-fill-field={field}
       data-fill-row={rowIndex}
     >
@@ -105,8 +105,8 @@ const FillableCell: React.FC<FillableCellProps> = ({
             e.stopPropagation();
             onFillStart(field, rowIndex, value, e);
           }}
-          className={`shrink-0 w-4 h-4 mb-0.5 rounded-[2px] border-2 border-slate-900 bg-blue-500 shadow cursor-crosshair touch-none hover:bg-blue-600 active:bg-blue-700 ${
-            isOrigin ? 'ring-2 ring-blue-300 scale-110 bg-blue-600' : ''
+          className={`shrink-0 w-4 h-4 mb-0.5 rounded-[2px] border-2 border-slate-900 bg-brand-glow shadow cursor-crosshair touch-none hover:bg-brand-ink active:bg-brand-deep ${
+            isOrigin ? 'ring-2 ring-brand-glow scale-110 bg-brand-ink' : ''
           }`}
         />
       </div>
@@ -212,7 +212,9 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     if (documentToEdit?.previewOptions?.showDimensions !== undefined) {
       return documentToEdit.previewOptions.showDimensions;
     }
-    return documentToEdit?.items ? documentToEdit.items.some((it) => Boolean(it.length || it.width)) : true;
+    return documentToEdit?.items
+      ? documentToEdit.items.some((it) => !isSectionItem(it) && Boolean(it.length || it.width))
+      : true;
   });
 
   const [showDiscount, setShowDiscount] = useState<boolean>(() => {
@@ -361,6 +363,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       ...prev,
       {
         id: `item_${Date.now()}_${prev.length + 1}`,
+        kind: 'line',
         description: '',
         length: '',
         width: '',
@@ -373,8 +376,34 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     ]);
   };
 
+  const handleAddSection = (insertAtIndex?: number) => {
+    const section: DocumentItem = {
+      id: `section_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      kind: 'section',
+      description: '',
+      quantity: 0,
+      unitPrice: 0,
+      taxRate: 0,
+      discount: 0,
+    };
+    setItems((prev) => {
+      if (insertAtIndex === undefined || insertAtIndex < 0 || insertAtIndex > prev.length) {
+        return [...prev, section];
+      }
+      const next = [...prev];
+      next.splice(insertAtIndex, 0, section);
+      return next;
+    });
+  };
+
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
+    const target = items.find((it) => it.id === id);
+    if (!target) return;
+    // Garder au moins une ligne facturable
+    if (!isSectionItem(target) && items.filter((it) => !isSectionItem(it)).length <= 1) {
+      return;
+    }
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
@@ -413,6 +442,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     setItems((prev) =>
       prev.map((item, idx) => {
         if (idx < from || idx > to) return item;
+        if (isSectionItem(item)) return item;
         let nextValue: DocumentItem[FillableField] = drag.value;
         if (drag.field === 'quantity') {
           nextValue = Math.max(1, Number(drag.value) || 1);
@@ -615,16 +645,16 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & Navigation */}
-      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white/95 backdrop-blur p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-white/95 backdrop-blur p-3 sm:p-5 rounded-2xl border border-brand-ink/10">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <button
             onClick={handleCancel}
-            className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0"
+            className="p-2.5 text-slate-400 hover:text-brand-ink hover:bg-brand-mist rounded-xl transition-colors cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h2 className="text-base sm:text-xl font-bold text-slate-900 truncate">
+            <h2 className="font-display text-base sm:text-xl font-bold text-brand-ink truncate">
               {isEditing ? `Modifier ${type === 'devis' ? 'le Devis' : 'la Facture'} ${number}` : `Nouveau ${type === 'devis' ? 'Devis' : 'Document'}`}
             </h2>
             <p className="hidden sm:block text-xs text-slate-500">Remplissez les éléments ci-dessous pour générer votre aperçu PDF</p>
@@ -647,7 +677,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               type="button"
               onClick={() => setActiveTab('preview')}
               className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === 'preview' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                activeTab === 'preview' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
@@ -659,7 +689,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm cursor-pointer shrink-0"
+            className="px-4 sm:px-5 py-2.5 bg-brand-ink hover:bg-brand-deep disabled:opacity-60 text-white font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 text-sm cursor-pointer shrink-0"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span className="sm:hidden">{isSaving ? '…' : 'Sauver'}</span>
@@ -701,7 +731,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                       if (type !== 'facture') setType('facture');
                     }}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      type === 'facture' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                      type === 'facture' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Facture
@@ -712,7 +742,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                       if (type !== 'devis') setType('devis');
                     }}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      type === 'devis' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                      type === 'devis' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Devis
@@ -752,7 +782,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                     type="button"
                     onClick={() => generateDocumentNumber(type).then(setNumber)}
                     title="Générer automatiquement le numéro séquentiel unique suivant"
-                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] font-bold text-brand-mid hover:text-brand-ink hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <RefreshCw className="w-3 h-3" />
                     <span>Auto-Numéro</span>
@@ -766,12 +796,12 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                     onChange={(e) => setNumber(e.target.value)}
                     className={`w-full px-3 py-2 bg-slate-50 border rounded-xl text-slate-900 font-mono text-sm font-bold focus:outline-none focus:ring-2 ${
                       isNumberUnique
-                        ? 'border-slate-200 focus:ring-blue-500'
+                        ? 'border-slate-200 focus:ring-brand-mid'
                         : 'border-rose-300 bg-rose-50/50 text-rose-900 focus:ring-rose-500'
                     }`}
                   />
                   {isNumberUnique ? (
-                    <span className="absolute right-2.5 top-2.5 text-blue-600 flex items-center gap-1 text-[10px] font-extrabold bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200">
+                    <span className="absolute right-2.5 top-2.5 text-brand-mid flex items-center gap-1 text-[10px] font-extrabold bg-brand-mist px-1.5 py-0.5 rounded-md border border-brand-mid/25">
                       <ShieldCheck className="w-3 h-3" /> Unique
                     </span>
                   ) : (
@@ -792,8 +822,8 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   </p>
                 )}
                 {convertedFactureNumber && (
-                  <p className="text-[11px] font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 mt-1.5 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                  <p className="text-[11px] font-bold text-brand-ink bg-brand-mist px-2.5 py-1 rounded-lg border border-brand-mid/25 mt-1.5 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-brand-mid" />
                     <span>Devis converti — Facture rattachée n° {convertedFactureNumber}</span>
                   </p>
                 )}
@@ -807,7 +837,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as DocumentStatus)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid font-bold"
                 >
                   <optgroup label="Facturation & Règlement">
                     <option value="payee">Payé / Réglé</option>
@@ -839,7 +869,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid font-bold"
                 >
                   <option value="FCFA">FCFA (Francs CFA)</option>
                   <option value="XOF">XOF (UEMOA)</option>
@@ -859,7 +889,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   <button
                     type="button"
                     onClick={onQuickAddClient}
-                    className="text-[11px] font-semibold text-blue-600 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-brand-mid hover:underline cursor-pointer"
                   >
                     + Ajouter client
                   </button>
@@ -867,7 +897,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <select
                   value={selectedClientId}
                   onChange={(e) => setSelectedClientId(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid font-medium"
                 >
                   {clients.map((cli) => {
                     const isEnt = cli.clientType === 'entreprise' || (!cli.clientType && !!cli.companyName);
@@ -890,7 +920,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <FrenchDateInput
                   value={date}
                   onChange={setDate}
-                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
               </div>
 
@@ -902,7 +932,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 <FrenchDateInput
                   value={dueDate}
                   onChange={setDueDate}
-                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
               </div>
             </div>
@@ -929,7 +959,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         setTaxRate(newRate);
                         setItems(items.map((it) => ({ ...it, taxRate: newRate })));
                       }}
-                      className="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-20 px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-xs font-bold font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-mid"
                     />
                     <span className="absolute right-2 text-xs font-bold text-slate-500 pointer-events-none">%</span>
                   </div>
@@ -945,7 +975,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         }}
                         className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                           taxRate === preset
-                            ? 'bg-blue-600 text-white shadow-2xs'
+                            ? 'bg-brand-ink text-white shadow-2xs'
                             : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
                         }`}
                       >
@@ -997,13 +1027,13 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
 
               <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-medium">
                 {showDimensions && (
-                  <div className="text-blue-800 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200/90 flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded font-bold text-[9px] uppercase tracking-wider">Formule P.U.</span>
+                  <div className="text-brand-ink bg-brand-mist px-3 py-1 rounded-xl border border-brand-mid/25/90 flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 bg-brand-ink text-white rounded font-bold text-[9px] uppercase tracking-wider">Formule P.U.</span>
                     <span>Calcul auto : <strong>((Largeur × Hauteur) / 1 000 000) × Prix Client</strong></span>
                   </div>
                 )}
                 <span className="inline-flex items-center gap-1.5 text-slate-600">
-                  <span className="inline-block w-3.5 h-3.5 rounded-[2px] border-2 border-slate-900 bg-blue-500 shrink-0" />
+                  <span className="inline-block w-3.5 h-3.5 rounded-[2px] border-2 border-slate-900 bg-brand-glow shrink-0" />
                   Carré bleu à droite de chaque case → maintenir et tirer pour recopier.
                 </span>
               </div>
@@ -1023,7 +1053,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                       <>
                         <th className="py-2.5 px-2 w-28 text-center">Hauteur (mm)</th>
                         <th className="py-2.5 px-2 w-28 text-center">Largeur (mm)</th>
-                        <th className="py-2.5 px-2 w-28 text-center bg-blue-50/80 text-blue-900 border-x border-blue-200/60 font-bold">
+                        <th className="py-2.5 px-2 w-28 text-center bg-brand-mist/80 text-brand-ink border-x border-brand-mid/25/60 font-bold">
                           Prix Client
                         </th>
                       </>
@@ -1058,7 +1088,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             placeholder="Ex: Store Vénitien Alu..."
                             value={item.description}
                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
                           />
                         </FillableCell>
                         {showDimensions && (
@@ -1076,7 +1106,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                 placeholder="ex: 2400"
                                 value={item.length ?? ''}
                                 onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
                               />
                             </FillableCell>
                             <FillableCell
@@ -1092,7 +1122,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                 placeholder="ex: 1600"
                                 value={item.width ?? ''}
                                 onChange={(e) => handleItemChange(item.id, 'width', e.target.value)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
                               />
                             </FillableCell>
                             <FillableCell
@@ -1101,7 +1131,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                               value={item.clientPrice}
                               fillDrag={fillDrag}
                               onFillStart={handleFillStart}
-                              className="py-2.5 px-1.5 bg-blue-50/30 border-x border-blue-100"
+                              className="py-2.5 px-1.5 bg-brand-mist/30 border-x border-blue-100"
                             >
                               <input
                                 type="number"
@@ -1116,7 +1146,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                     e.target.value === '' ? '' : Number(e.target.value)
                                   )
                                 }
-                                className="w-full px-2 py-1.5 bg-white border border-blue-300 rounded-lg text-blue-900 font-mono font-extrabold text-xs text-right focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs"
+                                className="w-full px-2 py-1.5 bg-white border border-brand-mid/35 rounded-lg text-brand-ink font-mono font-extrabold text-xs text-right focus:outline-none focus:ring-2 focus:ring-brand-mid shadow-2xs"
                               />
                             </FillableCell>
                           </>
@@ -1136,7 +1166,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             onChange={(e) =>
                               handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))
                             }
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-brand-mid"
                           />
                         </FillableCell>
                         <FillableCell
@@ -1153,7 +1183,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             step="500"
                             value={item.unitPrice}
                             onChange={(e) => handleItemChange(item.id, 'unitPrice', Number(e.target.value))}
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-brand-mid"
                           />
                         </FillableCell>
                         {showDiscount && (
@@ -1171,7 +1201,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                               max="100"
                               value={item.discount}
                               onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
-                              className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
                             />
                           </FillableCell>
                         )}
@@ -1201,7 +1231,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 onClick={handleAddItem}
                 className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-blue-600" />
+                <Plus className="w-4 h-4 text-brand-mid" />
                 <span>Ajouter une ligne</span>
               </button>
 
@@ -1216,14 +1246,14 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 </div>
                 <div className="flex justify-between text-sm font-bold text-slate-900 pt-1 border-t border-slate-200">
                   <span>TOTAL TTC :</span>
-                  <span className="font-mono text-blue-700 font-extrabold">{formatFCFA(totals.totalTTC, currency)}</span>
+                  <span className="font-mono text-brand-ink font-extrabold">{formatFCFA(totals.totalTTC, currency)}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Auto Amount in Words Preview Banner */}
-          <div className="p-4 bg-blue-50/70 rounded-2xl border border-blue-100 text-xs text-blue-900">
+          <div className="p-4 bg-brand-mist/70 rounded-2xl border border-blue-100 text-xs text-brand-ink">
             <span className="font-bold">Conversion automatique du montant en toutes lettres :</span>
             <p className="mt-1 font-semibold italic text-slate-800">« {amountInWords} »</p>
           </div>
@@ -1239,7 +1269,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Ex: Merci pour votre confiance..."
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -1252,7 +1282,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 placeholder="Ex: Paiement sous 15 jours par virement bancaire..."
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>

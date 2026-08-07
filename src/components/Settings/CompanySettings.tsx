@@ -143,7 +143,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
       <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Building className="w-6 h-6 text-blue-600" />
+            <Building className="w-6 h-6 text-brand-mid" />
             <span>Profil de votre Entreprise</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
@@ -152,7 +152,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         </div>
 
         {savedMsg && (
-          <div className="px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 animate-fade-in">
+          <div className="px-3 py-1.5 bg-brand-mist border border-brand-mid/25 text-brand-ink text-xs font-semibold rounded-xl flex items-center gap-1.5 animate-fade-in">
             <CheckCircle2 className="w-4 h-4" />
             <span>Profil mis à jour !</span>
           </div>
@@ -170,9 +170,9 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-blue-600" />
+              <ImageIcon className="w-4 h-4 text-brand-mid" />
               <span>Logo de l'Entreprise (En-tête PDF)</span>
-              {uploading === 'logo' && <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />}
+              {uploading === 'logo' && <Loader2 className="w-4 h-4 text-brand-mid animate-spin" />}
             </h3>
             {profile.logoUrl && (
               <button
@@ -202,7 +202,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                   />
                 ) : (
                   <div className="text-center">
-                    <div className="inline-block px-3 py-1.5 bg-slate-900 text-white font-black text-sm rounded-lg tracking-wider mb-1">
+                    <div className="inline-block px-3 py-1.5 bg-brand-ink text-white font-black text-sm rounded-lg tracking-wider mb-1">
                       {profile.companyName || 'VOTRE LOGO'}
                     </div>
                     <p className="text-[10px] text-slate-400 italic">Aucun logo téléchargé</p>
@@ -223,17 +223,17 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-xl p-5 text-center transition-all ${
                   isDragging
-                    ? 'border-blue-500 bg-blue-50/50'
+                    ? 'border-blue-500 bg-brand-mist/50'
                     : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/50'
                 }`}
               >
-                <Upload className="w-7 h-7 text-blue-600 mx-auto mb-1.5" />
+                <Upload className="w-7 h-7 text-brand-mid mx-auto mb-1.5" />
                 <p className="text-xs font-bold text-slate-800">
                   Glissez-déposez votre fichier image ici
                 </p>
                 <p className="text-[11px] text-slate-500 mb-3">ou parcourez votre ordinateur (PNG, JPG, SVG)</p>
                 
-                <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer">
+                <label className="inline-flex items-center gap-2 px-4 py-2 bg-brand-ink hover:bg-brand-deep text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer">
                   <Upload className="w-3.5 h-3.5" />
                   <span>Choisir une image</span>
                   <input
@@ -250,7 +250,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowUrlInput(!showUrlInput)}
-                  className="text-slate-600 hover:text-blue-700 font-medium flex items-center gap-1.5 cursor-pointer underline underline-offset-2"
+                  className="text-slate-600 hover:text-brand-ink font-medium flex items-center gap-1.5 cursor-pointer underline underline-offset-2"
                 >
                   <Link className="w-3.5 h-3.5" />
                   <span>{showUrlInput ? 'Masquer l\'adresse URL' : 'Utiliser une adresse URL d\'image'}</span>
@@ -264,7 +264,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                     value={profile.logoUrl || ''}
                     onChange={(e) => setProfile({ ...profile, logoUrl: e.target.value })}
                     placeholder="https://votre-site.com/images/logo.png"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
                   />
                 </div>
               )}
@@ -346,7 +346,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <PenTool className="w-4 h-4 text-blue-600" />
+                    <PenTool className="w-4 h-4 text-brand-mid" />
                     <span>Signature Numérique</span>
                   </span>
                   {profile.signatureUrl && (
@@ -380,7 +380,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
               </div>
 
               <div className="space-y-2">
-                <label className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs">
+                <label className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-brand-ink hover:bg-brand-deep text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>Importer votre signature (PNG/SVG)</span>
                   <input
@@ -401,7 +401,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         {/* Identity & Fiscal IDs */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <Building className="w-4 h-4 text-blue-600" />
+            <Building className="w-4 h-4 text-brand-mid" />
             <span>Identité & Numéros Fiscaux</span>
           </h3>
 
@@ -415,7 +415,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 required
                 value={profile.companyName}
                 onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
               <p className="mt-1.5 text-[11px] text-slate-500">
                 Utilisée uniquement dans l’application (menu, compte). Elle n’apparaît pas sur vos devis et factures — le logo suffit.
@@ -431,7 +431,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 value={profile.tagline || ''}
                 onChange={(e) => setProfile({ ...profile, tagline: e.target.value })}
                 placeholder="Services Informatiques & Génie Logiciel"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -446,7 +446,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 value={profile.nif}
                 onChange={(e) => setProfile({ ...profile, nif: e.target.value })}
                 placeholder="001928374-A"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -459,7 +459,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 value={profile.rccm}
                 onChange={(e) => setProfile({ ...profile, rccm: e.target.value })}
                 placeholder="CI-ABJ-2023-B-14820"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -477,7 +477,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                   step="0.1"
                   value={profile.defaultTaxRate ?? 18}
                   onChange={(e) => setProfile({ ...profile, defaultTaxRate: Number(e.target.value) })}
-                  className="w-28 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-28 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold font-mono text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 />
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {[18, 20, 0, 5].map((preset) => (
@@ -487,7 +487,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                       onClick={() => setProfile({ ...profile, defaultTaxRate: preset })}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         profile.defaultTaxRate === preset
-                          ? 'bg-blue-600 text-white shadow-xs'
+                          ? 'bg-brand-ink text-white shadow-xs'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -511,7 +511,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 max="365"
                 value={profile.defaultPaymentTermsDays ?? 30}
                 onChange={(e) => setProfile({ ...profile, defaultPaymentTermsDays: Number(e.target.value) })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
               <p className="text-[11px] text-slate-500 mt-1">
                 Utilisé pour calculer automatiquement la date d'échéance.
@@ -523,7 +523,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         {/* Address & Contact Details */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-600" />
+            <MapPin className="w-4 h-4 text-brand-mid" />
             <span>Adresse & Coordonnées</span>
           </h3>
 
@@ -535,7 +535,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
               type="text"
               value={profile.address}
               onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
             />
           </div>
 
@@ -548,7 +548,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 type="text"
                 value={profile.city}
                 onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -560,7 +560,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 type="text"
                 value={profile.country}
                 onChange={(e) => setProfile({ ...profile, country: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -574,7 +574,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 type="text"
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -586,7 +586,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -595,7 +595,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         {/* Banking & Mobile Money Payment RIB */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-blue-600" />
+            <CreditCard className="w-4 h-4 text-brand-mid" />
             <span>Coordonnées Bancaires & Mobile Money</span>
           </h3>
 
@@ -614,7 +614,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                   })
                 }
                 placeholder="Coris Bank / NSIA / BNI / Ecobank"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
 
@@ -632,7 +632,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                   })
                 }
                 placeholder="CI093 01001 012345678901 24"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
               />
             </div>
           </div>
@@ -651,7 +651,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
                 })
               }
               placeholder="Orange Money / Wave : +225 07 00 00 00 00"
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-mid"
             />
           </div>
         </div>
@@ -659,7 +659,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
         {/* Legal Footer */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h3 className="text-base font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-blue-600" />
+            <FileText className="w-4 h-4 text-brand-mid" />
             <span>Pied de page Légal</span>
           </h3>
 
@@ -671,20 +671,20 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
               rows={2}
               value={profile.legalFooter || ''}
               onChange={(e) => setProfile({ ...profile, legalFooter: e.target.value })}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
             />
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
           <p className="text-[11px] text-slate-500 flex items-center gap-1.5">
-            <CloudUpload className="w-3.5 h-3.5 text-blue-600" />
+            <CloudUpload className="w-3.5 h-3.5 text-brand-mid" />
             <span>PNG / JPG envoyés et liés automatiquement via Supabase Storage.</span>
           </p>
           <button
             type="submit"
             disabled={saving || !!uploading}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="px-6 py-3 bg-brand-ink hover:bg-brand-deep disabled:opacity-60 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>Enregistrer les modifications</span>

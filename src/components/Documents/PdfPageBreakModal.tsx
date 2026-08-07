@@ -74,7 +74,7 @@ function PagePreviewFrame({
     >
       <div
         className={`text-white font-bold flex justify-between items-center gap-2 ${
-          page.isEmpty ? 'bg-rose-700' : 'bg-slate-900'
+          page.isEmpty ? 'bg-rose-700' : 'bg-brand-ink'
         } ${size === 'large' ? 'px-3 py-1.5 text-[11px]' : 'px-2 py-1 text-[10px]'}`}
       >
         <span>
@@ -118,7 +118,7 @@ function PagePreviewFrame({
               height: `${highlight.height}%`,
             }}
           >
-            <div className="absolute -top-5 left-0 max-w-full truncate rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow">
+            <div className="absolute -top-5 left-0 max-w-full truncate rounded bg-brand-ink px-1.5 py-0.5 text-[9px] font-bold text-white shadow">
               {hoveredModule?.label}
             </div>
           </div>
@@ -281,9 +281,9 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
   return (
     <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3">
       <div className="bg-slate-100 w-full h-[96vh] sm:h-auto sm:max-h-[96vh] sm:max-w-6xl sm:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-300 flex flex-col overflow-hidden">
-        <div className="shrink-0 flex items-start justify-between gap-3 p-4 sm:px-5 sm:py-4 border-b border-slate-800 bg-slate-900 text-white">
+        <div className="shrink-0 flex items-start justify-between gap-3 p-4 sm:px-5 sm:py-4 border-b border-brand-deep bg-brand-ink text-white">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 text-blue-300 text-xs font-black uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-brand-glow text-xs font-black uppercase tracking-wider mb-1">
               <ZoomIn className="w-3.5 h-3.5" />
               <span>Aperçu PDF réel</span>
             </div>
@@ -296,7 +296,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
             type="button"
             onClick={onClose}
             disabled={isExporting}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer disabled:opacity-50"
+            className="p-2 rounded-xl bg-brand-deep hover:bg-brand-mid/40 text-slate-200 cursor-pointer disabled:opacity-50"
           >
             <X className="w-4 h-4" />
           </button>
@@ -306,7 +306,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
           <div className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 bg-slate-200/80">
             {isCapturingPreview ? (
               <div className="flex flex-col items-center justify-center py-24 text-slate-600 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-mid" />
                 <p className="text-sm font-semibold">Génération de l’aperçu des pages…</p>
               </div>
             ) : visualPages.length === 0 ? (
@@ -337,7 +337,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
                         onClick={() => setSelectedPage(p.pageIndex)}
                         className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer border ${
                           selectedPage === p.pageIndex
-                            ? 'bg-slate-900 text-white border-slate-900'
+                            ? 'bg-brand-ink text-white border-slate-900'
                             : p.isEmpty
                               ? 'bg-rose-50 text-rose-700 border-rose-200'
                               : 'bg-white text-slate-600 border-slate-300 hover:border-slate-500'
@@ -388,7 +388,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
             <div className="shrink-0 p-4 pb-2 border-b border-slate-100 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Scissors className="w-4 h-4 text-blue-600" />
+                  <Scissors className="w-4 h-4 text-brand-mid" />
                   Découpage
                 </h3>
                 <button
@@ -432,7 +432,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
                         onMouseLeave={() => handleModuleHover(null)}
                         className={`rounded-xl border px-3 py-2.5 space-y-2 transition-colors ${
                           isHovered
-                            ? 'border-blue-400 bg-blue-50 ring-2 ring-blue-200'
+                            ? 'border-blue-400 bg-brand-mist ring-2 ring-blue-200'
                             : 'border-slate-200 bg-slate-50'
                         }`}
                       >
@@ -440,7 +440,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
                           <div
                             className={`w-6 h-6 rounded-md text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5 border ${
                               isHovered
-                                ? 'bg-blue-600 text-white border-blue-600'
+                                ? 'bg-brand-ink text-white border-blue-600'
                                 : 'bg-white text-slate-600 border-slate-200'
                             }`}
                           >
@@ -453,7 +453,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
                             <div className="text-[10px] text-slate-500 mt-0.5">
                               Page {pageIndex + 1}
                               {pulled && (
-                                <span className="text-blue-600 font-bold"> · remonté</span>
+                                <span className="text-brand-mid font-bold"> · remonté</span>
                               )}
                             </div>
                           </div>
@@ -465,8 +465,8 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
                             onClick={() => pullToPrevious(mod.id)}
                             className={`w-full px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer border ${
                               pulled
-                                ? 'bg-blue-600 text-white border-blue-700'
-                                : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
+                                ? 'bg-brand-ink text-white border-blue-700'
+                                : 'bg-white text-brand-ink border-brand-mid/25 hover:bg-brand-mist'
                             }`}
                           >
                             <ArrowUpToLine className="w-3 h-3" />
@@ -514,7 +514,7 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
             type="button"
             onClick={onConfirmDownload}
             disabled={isExporting || isCapturingPreview}
-            className="px-5 py-3 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+            className="px-5 py-3 rounded-xl text-xs font-bold bg-brand-ink hover:bg-brand-deep text-white flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
           >
             {isExporting ? (
               <>

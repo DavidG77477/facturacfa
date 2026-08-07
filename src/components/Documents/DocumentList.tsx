@@ -57,11 +57,11 @@ const StatusSelector: React.FC<{
           placeholder="Entrez statut..."
           value={customVal}
           onChange={(e) => setCustomVal(e.target.value)}
-          className="px-2 py-1 bg-white border border-blue-500 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 w-32 shadow-xs"
+          className="px-2 py-1 bg-white border border-blue-500 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-mid w-32 shadow-xs"
         />
         <button
           type="submit"
-          className="px-2 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold cursor-pointer hover:bg-blue-700"
+          className="px-2 py-1 bg-brand-ink text-white rounded-lg text-[10px] font-bold cursor-pointer hover:bg-brand-deep"
         >
           Valider
         </button>
@@ -206,7 +206,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     switch (status) {
       case 'payee':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-mist text-brand-ink border border-brand-mid/25 rounded-lg text-xs font-semibold">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Payée</span>
           </span>
@@ -227,7 +227,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         );
       case 'accepte':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-mist text-brand-ink border border-brand-mid/25 rounded-lg text-xs font-semibold">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Accepté</span>
           </span>
@@ -262,11 +262,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Chiffre d'Affaires Réglé</span>
-            <div className="text-2xl font-black text-blue-600 mt-1">{formatFCFA(metrics.totalPaid)}</div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires Réglé</span>
+            <div className="font-display text-2xl font-extrabold text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Factures encaissées</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
@@ -274,7 +274,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">En Attente de Règlement</span>
-            <div className="text-2xl font-black text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
+            <div className="font-display text-2xl font-extrabold text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Factures émises non payées</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
@@ -285,10 +285,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Encours Devis</span>
-            <div className="text-2xl font-black text-blue-600 mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
+            <div className="font-display text-2xl font-extrabold text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Devis en attente & acceptés</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
             <FileText className="w-6 h-6" />
           </div>
         </div>
@@ -311,7 +311,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               <button
                 onClick={() => setDocTypeFilter('facture')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  docTypeFilter === 'facture' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  docTypeFilter === 'facture' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 Factures ({documents.filter((d) => d.type === 'facture').length})
@@ -319,7 +319,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               <button
                 onClick={() => setDocTypeFilter('devis')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  docTypeFilter === 'devis' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  docTypeFilter === 'devis' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 Devis ({documents.filter((d) => d.type === 'devis').length})
@@ -355,7 +355,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
             <button
               onClick={() => onNewDocument('devis')}
-              className="px-3.5 py-2.5 sm:py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2.5 sm:py-2 bg-brand-mist hover:bg-brand-mist text-brand-ink font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouveau Devis</span>
@@ -363,7 +363,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
             <button
               onClick={() => onNewDocument('facture')}
-              className="px-4 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2.5 sm:py-2 bg-brand-ink hover:bg-brand-deep text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouvelle Facture</span>
@@ -381,7 +381,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher par N°, nom client ou désignation..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
             />
           </div>
 
@@ -391,7 +391,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               <FrenchDateInput
                 value={dateFilter.startDate}
                 onChange={(startDate) => setDateFilter((prev) => ({ ...prev, startDate, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 title="Date début (JJ/MM/AAAA)"
               />
             </div>
@@ -400,7 +400,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               <FrenchDateInput
                 value={dateFilter.endDate}
                 onChange={(endDate) => setDateFilter((prev) => ({ ...prev, endDate, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
                 title="Date fin (JJ/MM/AAAA)"
               />
             </div>
@@ -411,7 +411,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <button
               onClick={() => handlePresetDate('all')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                dateFilter.preset === 'all' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               Tout
@@ -419,7 +419,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <button
               onClick={() => handlePresetDate('this_month')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'this_month' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                dateFilter.preset === 'this_month' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               Ce mois
@@ -427,7 +427,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <button
               onClick={() => handlePresetDate('this_year')}
               className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'this_year' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                dateFilter.preset === 'this_year' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               Cette année
@@ -459,7 +459,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
-                          isDevis ? 'bg-sky-100 text-sky-800' : 'bg-blue-100 text-blue-800'
+                          isDevis ? 'bg-sky-100 text-sky-800' : 'bg-brand-mist text-brand-ink'
                         }`}>
                           {isDevis ? 'DEVIS' : 'FAC'}
                         </span>
@@ -486,7 +486,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <button
                       type="button"
                       onClick={() => onViewDocument(doc)}
-                      className="py-2.5 px-3 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 bg-brand-ink text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       Aperçu
@@ -556,7 +556,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                         <div className="flex items-center gap-2">
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
-                              isDevis ? 'bg-blue-100 text-blue-800' : 'bg-blue-100 text-blue-800'
+                              isDevis ? 'bg-brand-mist text-brand-ink' : 'bg-brand-mist text-brand-ink'
                             }`}
                           >
                             {isDevis ? 'DEVIS' : 'FAC'}
@@ -578,11 +578,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                     onViewDocument(attachedFactureDoc);
                                   }
                                 }}
-                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md border border-blue-200/80 w-fit transition-all cursor-pointer group shadow-2xs"
+                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-brand-ink bg-brand-mist hover:bg-brand-mist px-2 py-0.5 rounded-md border border-brand-mid/25/80 w-fit transition-all cursor-pointer group shadow-2xs"
                                 title="Cliquer pour voir la facture rattachée"
                               >
-                                <span className="text-[9px] text-blue-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                                  <CheckCircle2 className="w-2.5 h-2.5 text-blue-600" />
+                                <span className="text-[9px] text-brand-mid font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <CheckCircle2 className="w-2.5 h-2.5 text-brand-mid" />
                                   Facture :
                                 </span>
                                 <span className="font-mono font-bold text-blue-950 group-hover:underline">{attachedFactureNum}</span>
@@ -648,7 +648,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                           <button
                             onClick={() => onViewDocument(doc)}
                             title="Aperçu & Imprimer PDF"
-                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 hover:text-brand-mid hover:bg-brand-mist rounded-lg transition-colors cursor-pointer"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -657,7 +657,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                           <button
                             onClick={() => onEditDocument(doc)}
                             title="Modifier"
-                            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 hover:text-brand-mid hover:bg-brand-mist rounded-lg transition-colors cursor-pointer"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
@@ -705,7 +705,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Delete Confirmation Modal */}
       {documentToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-brand-ink/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center gap-3 text-rose-600 mb-4">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">

@@ -366,16 +366,16 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       />
 
       {/* Top Action Toolbar */}
-      <div className="flex flex-col gap-3 bg-slate-900 text-white p-3 sm:p-4 rounded-2xl shadow-xl border border-slate-800 sticky top-14 sm:top-16 z-30">
+      <div className="flex flex-col gap-3 bg-brand-ink text-brand-paper p-3 sm:p-4 rounded-2xl border border-brand-deep sticky top-14 sm:top-16 z-30">
         <div className="flex flex-wrap items-center gap-2">
-          <div className={`px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-sm ${
-            isDevis ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white' : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white'
+          <div className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+            isDevis ? 'bg-sky-600/90 text-white' : 'bg-brand-mid text-white'
           }`}>
             <FileCheck2 className="w-3.5 h-3.5" />
             <span>{isDevis ? 'Aperçu Devis' : 'Aperçu Facture'}</span>
           </div>
 
-          <span className="font-mono font-bold text-sm text-slate-100 bg-slate-800/80 px-2.5 py-0.5 rounded-lg border border-slate-700">
+          <span className="font-mono font-bold text-sm text-brand-paper bg-brand-deep/70 px-2.5 py-0.5 rounded-lg border border-white/10">
             {doc.number}
           </span>
 
@@ -390,10 +390,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {/* Customization Options Toggle Button */}
           <button
             onClick={() => setShowOptionsBar(!showOptionsBar)}
-            className={`px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+            className={`px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
               showOptionsBar
-                ? 'bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-md'
-                : 'bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border-amber-500/30'
+                ? 'bg-amber-500 text-slate-950 border-amber-400'
+                : 'bg-brand-deep/70 hover:bg-brand-mid/40 text-amber-300 border-amber-500/25'
             }`}
             title="Choisir les informations à afficher ou masquer sur le document"
           >
@@ -405,7 +405,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {isDevis && onConvertDevisToFacture && (
             <button
               onClick={onConvertDevisToFacture}
-              className="px-3.5 py-2.5 sm:py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-purple-900/20"
+              className="px-3.5 py-2.5 sm:py-2 bg-brand-mid hover:bg-brand-ink text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               title="Convertir ce devis en Facture"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -417,10 +417,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {onDuplicate && (
             <button
               onClick={onDuplicate}
-              className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
+              className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
               title="Dupliquer ce document"
             >
-              <CopyPlus className="w-3.5 h-3.5 text-slate-400" />
+              <CopyPlus className="w-3.5 h-3.5 text-brand-sand/50" />
               <span>Dupliquer</span>
             </button>
           )}
@@ -428,44 +428,42 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {onEdit && (
             <button
               onClick={onEdit}
-              className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
+              className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
             >
-              <Edit3 className="w-3.5 h-3.5 text-slate-400" />
+              <Edit3 className="w-3.5 h-3.5 text-brand-sand/50" />
               <span>Modifier</span>
             </button>
           )}
 
           <button
             onClick={handleCopySummary}
-            className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
+            className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-blue-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-brand-glow" /> : <Copy className="w-3.5 h-3.5 text-brand-sand/50" />}
             <span className="sm:hidden">{copied ? 'Copié' : 'Résumé'}</span>
             <span className="hidden sm:inline">{copied ? 'Copié !' : 'Copier résumé'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/60"
+            className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-400" />
+            <Printer className="w-3.5 h-3.5 text-brand-sand/50" />
             <span>Imprimer</span>
           </button>
 
           <button
             onClick={openDownloadPlanner}
             disabled={isExporting}
-            className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 ${
+            className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 text-brand-ink rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
               downloadSuccess
-                ? 'bg-blue-600 text-white'
-                : isDevis
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-900/30'
-                : 'bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-500 hover:to-blue-500 shadow-blue-900/30'
+                ? 'bg-brand-glow text-brand-ink'
+                : 'bg-brand-glow hover:bg-brand-sand text-brand-ink'
             }`}
           >
             {downloadSuccess ? (
               <>
-                <Check className="w-4 h-4 text-white" />
+                <Check className="w-4 h-4 text-brand-ink" />
                 <span>PDF Téléchargé !</span>
               </>
             ) : (
@@ -686,7 +684,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       <p className="md:hidden text-[11px] text-slate-500 font-medium px-1">
         Faites glisser horizontalement pour voir tout le document A4.
       </p>
-      <div className="bg-slate-200/60 p-3 sm:p-8 rounded-2xl sm:rounded-3xl overflow-x-auto overscroll-x-contain border border-slate-300/60 shadow-inner -mx-1 sm:mx-0">
+      <div className="bg-brand-mist/70 p-3 sm:p-8 rounded-2xl sm:rounded-3xl overflow-x-auto overscroll-x-contain border border-brand-ink/8 -mx-1 sm:mx-0">
         <div className="min-w-[794px] flex justify-center mx-auto">
         <div
           ref={paperRef}

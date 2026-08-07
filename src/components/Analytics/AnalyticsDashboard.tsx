@@ -176,23 +176,23 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Top Banner & Filters Controls */}
-      <div className="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+      <div className="bg-brand-ink text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-brand-deep flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <div className="px-3 py-1 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+            <div className="px-3 py-1 rounded-xl bg-brand-mid/20 text-brand-glow border border-brand-glow/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Tableau de Bord</span>
             </div>
             <span className="text-slate-400 text-xs font-medium">{filteredDocuments.length} document(s)</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Analyse des Chiffres</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white">Analyse des Chiffres</h1>
           <p className="text-xs text-slate-400 mt-1 hidden sm:block">Suivi en temps réel du chiffre d'affaires, des encaissements et des devis en FCFA.</p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 bg-slate-800/80 p-2 rounded-2xl border border-slate-700/70 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 bg-brand-deep/70 p-2 rounded-2xl border border-white/10 w-full md:w-auto">
           <div className="flex items-center gap-1.5 px-2 text-slate-400 text-xs font-bold">
-            <Filter className="w-3.5 h-3.5 text-blue-400" />
+            <Filter className="w-3.5 h-3.5 text-brand-glow" />
             <span>Filtres</span>
           </div>
 
@@ -208,7 +208,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <select
             value={docTypeFilter}
             onChange={(e) => setDocTypeFilter(e.target.value as any)}
-            className="w-full sm:w-auto bg-slate-900 text-slate-200 text-xs font-bold rounded-xl px-3 py-2.5 sm:py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="w-full sm:w-auto bg-brand-ink text-slate-200 text-xs font-bold rounded-xl px-3 py-2.5 sm:py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-mid cursor-pointer"
           >
             <option value="all">Tous les types</option>
             <option value="facture">Factures uniquement</option>
@@ -221,10 +221,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Encaissé */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="absolute -right-3 -top-3 w-20 h-20 bg-blue-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
+          <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encaissements Effectifs</span>
-            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
@@ -233,7 +233,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">
             <span className="text-slate-500 font-medium">{stats.countPaid} facture(s) payée(s)</span>
-            <span className="text-blue-700 font-extrabold bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
+            <span className="text-brand-ink font-extrabold bg-brand-mist px-2 py-0.5 rounded-lg border border-brand-mid/25">
               {stats.paymentRate}% récouvré
             </span>
           </div>
@@ -264,10 +264,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         {/* Card 3: Total Facturé */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="absolute -right-3 -top-3 w-20 h-20 bg-blue-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
+          <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Total Facturé (Volume TTC)</span>
-            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
@@ -282,19 +282,19 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         {/* Card 4: Volume & Taux Devis */}
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="absolute -right-3 -top-3 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
+          <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encours Devis & Conversion</span>
-            <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
               <FileCheck className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-indigo-950 tracking-tight">
+          <div className="text-2xl font-black font-mono text-brand-ink tracking-tight">
             {formatFCFA(stats.totalDevisPipeline)}
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">
             <span className="text-slate-500 font-medium">{stats.countDevis} devis · encours actif</span>
-            <span className="text-indigo-700 font-black bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200">
+            <span className="text-brand-ink font-black bg-brand-mist px-2 py-0.5 rounded-lg border border-brand-mid/25">
               {stats.devisConversionRate}% convertis
             </span>
           </div>
@@ -308,13 +308,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
+                <BarChart3 className="w-5 h-5 text-brand-mid" />
                 <span>Évolution Mensuelle des Revenus (FCFA)</span>
               </h3>
               <p className="text-xs text-slate-500">Comparatif entre le montant facturé et les encaissements réels</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold">
-              <span className="flex items-center gap-1.5 text-blue-800">
+              <span className="flex items-center gap-1.5 text-brand-ink">
                 <span className="w-3 h-3 rounded-full bg-blue-700"></span>
                 <span>Encaissé</span>
               </span>
@@ -366,17 +366,17 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           {/* Totaux = KPI (contrôle d'alignement avec les données générales) */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-[11px]">
             <div className="flex flex-wrap items-center gap-4 font-semibold">
-              <span className="text-blue-700">
+              <span className="text-brand-ink">
                 Σ Encaissé : <span className="font-mono font-black">{formatFCFA(chartTotals.paye)}</span>
               </span>
-              <span className="text-blue-700">
+              <span className="text-brand-ink">
                 Σ Facturé : <span className="font-mono font-black">{formatFCFA(chartTotals.factured)}</span>
               </span>
             </div>
             <span
               className={
                 chartTotals.paye === stats.totalPaid && chartTotals.factured === stats.totalFactured
-                  ? 'text-blue-600 font-bold'
+                  ? 'text-brand-mid font-bold'
                   : 'text-rose-600 font-bold'
               }
             >
@@ -445,12 +445,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
+                <Users className="w-5 h-5 text-brand-mid" />
                 <span>Top Clients par Chiffre d'Affaires</span>
               </h3>
               <p className="text-xs text-slate-500">Les 5 clients les plus importants en volume</p>
             </div>
-            <span className="text-[10px] font-extrabold uppercase bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg border border-blue-200">
+            <span className="text-[10px] font-extrabold uppercase bg-brand-mist text-brand-ink px-2.5 py-1 rounded-lg border border-brand-mid/25">
               Classement
             </span>
           </div>
@@ -463,7 +463,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   <div key={cli.clientName} className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-full bg-brand-ink text-white font-black text-xs flex items-center justify-center">
                           {idx + 1}
                         </span>
                         <div>
@@ -474,14 +474,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
                       <div className="text-right">
                         <div className="font-mono font-black text-slate-900 text-xs">{formatFCFA(cli.totalTTC)}</div>
-                        <div className="text-[10px] font-semibold text-blue-700">Encaissé : {formatFCFA(cli.paidTTC)}</div>
+                        <div className="text-[10px] font-semibold text-brand-ink">Encaissé : {formatFCFA(cli.paidTTC)}</div>
                       </div>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div
-                        className="bg-blue-500 h-full rounded-full transition-all duration-500"
+                        className="bg-brand-glow h-full rounded-full transition-all duration-500"
                         style={{ width: `${paidPct}%` }}
                       ></div>
                     </div>
@@ -543,7 +543,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                     <div className="text-right flex items-center gap-2">
                       <div>
                         <div className="font-mono font-black text-xs text-slate-900">{formatFCFA(totals.totalTTC)}</div>
-                        <div className="text-[10px] text-blue-700 font-bold hover:underline">Voir & relancer &rarr;</div>
+                        <div className="text-[10px] text-brand-ink font-bold hover:underline">Voir & relancer &rarr;</div>
                       </div>
                     </div>
                   </div>
