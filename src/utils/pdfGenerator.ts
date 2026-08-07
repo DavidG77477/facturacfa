@@ -5,6 +5,102 @@ import jsPDF from 'jspdf';
 export const A4_WIDTH_PX = 794;
 export const A4_HEIGHT_PX = 1123; // 794 * 297/210
 const A4_PADDING_PX = 40;
+const PAGE_FOOTER_SELECTOR = '[data-pdf-page-footer]';
+
+function isPageFooterElement(node: HTMLElement): boolean {
+  return node.hasAttribute('data-pdf-page-footer') || Boolean(node.closest(PAGE_FOOTER_SELECTOR));
+}
+
+function hidePageFooter(element: HTMLElement): () => void {
+  const footer = element.querySelector(PAGE_FOOTER_SELECTOR);
+  if (!(footer instanceof HTMLElement)) return () => {};
+  const prevDisplay = footer.style.display;
+  footer.style.display = 'none';
+  return () => {
+    footer.style.display = prevDisplay;
+  };
+}
+
+async function capturePageFooterCanvas(
+  element: HTMLElement,
+  scale: number
+): Promise<HTMLCanvasElement | null> {
+  const footer = element.querySelector(PAGE_FOOTER_SELECTOR);
+  if (!(footer instanceof HTMLElement)) return null;
+  const rect = footer.getBoundingClientRect();
+  if (rect.height < 4 || rect.width < 4) return null;
+
+  const canvas = await html2canvas(footer, {
+    scale,
+    useCORS: true,
+    allowTaint: false,
+    logging: false,
+    backgroundColor: '#ffffff',
+    imageTimeout: 15000,
+    foreignObjectRendering: false,
+    removeContainer: true,
+    onclone: (clonedDoc) => {
+      clonedDoc.querySelectorAll('.no-print').forEach((el) => {
+        if (el instanceof HTMLElement) el.style.display = 'none';
+      });
+    },
+  });
+
+  return canvas.width && canvas.height ? canvas : null;
+}
+
+function footerHeightForPageWidth(footer: HTMLCanvasElement, pageWidthPx: number): number {
+  return Math.max(1, Math.round((footer.height / Math.max(footer.width, 1)) * pageWidthPx));
+}
+
+/** Compose une page A4 : contenu en haut, pied de page collé en bas. */
+function composePageWithFooter(
+  contentCanvas: HTMLCanvasElement,
+  pageWidthPx: number,
+  pageHeightPx: number,
+  footerCanvas: HTMLCanvasElement | null
+): HTMLCanvasElement {
+  const out = document.createElement('canvas');
+  out.width = pageWidthPx;
+  out.height = pageHeightPx;
+  const ctx = out.getContext('2d');
+  if (!ctx) throw new Error('Impossible de composer la page PDF.');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+
+  const footerH = footerCanvas ? footerHeightForPageWidth(footerCanvas, pageWidthPx) : 0;
+  const contentMaxH = Math.max(1, pageHeightPx - footerH);
+  const srcH = Math.min(contentCanvas.height, Math.round(contentMaxH * (contentCanvas.width / pageWidthPx)));
+
+  ctx.drawImage(
+    contentCanvas,
+    0,
+    0,
+    contentCanvas.width,
+    srcH,
+    0,
+    0,
+    pageWidthPx,
+    Math.min(contentMaxH, Math.round(srcH * (pageWidthPx / contentCanvas.width)))
+  );
+
+  if (footerCanvas && footerH > 0) {
+    ctx.drawImage(
+      footerCanvas,
+      0,
+      0,
+      footerCanvas.width,
+      footerCanvas.height,
+      0,
+      pageHeightPx - footerH,
+      pageWidthPx,
+      footerH
+    );
+  }
+
+  return out;
+}
 
 export interface PdfModuleMeasure {
   id: string;
@@ -589,6 +685,7 @@ function collectKeepTogetherBlocks(
   nodes.forEach((node) => {
     if (!(node instanceof HTMLElement)) return;
     if (node.classList.contains('no-print') || node.closest('.no-print')) return;
+    if (isPageFooterElement(node)) return;
     // Ne pas traiter le tableau comme un seul bloc insécable
     if (node.tagName === 'TABLE') return;
 
@@ -920,7 +1017,8 @@ function addCanvasAsA4Pages(
   blocks: BlockBox[],
   forcedCutYs: number[] = [],
   pullTargets: PullTarget[] = [],
-  hiddenPageStarts: number[] = []
+  hiddenPageStarts: number[] = [],
+  footerCanvas: HTMLCanvasElement | null = null
 ): void {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -929,11 +1027,13 @@ function addCanvasAsA4Pages(
     pageWidth,
     pageHeight
   );
+  const footerH = footerCanvas ? footerHeightForPageWidth(footerCanvas, canvas.width) : 0;
+  const contentPageHeightPx = Math.max(160, pageHeightPx - footerH);
   const hiddenSet = new Set(hiddenPageStarts.map((y) => Math.round(y)));
   let slices = computePageSlices(
     canvas,
     ctx,
-    pageHeightPx,
+    contentPageHeightPx,
     blocks,
     forcedCutYs,
     pullTargets,
@@ -944,24 +1044,24 @@ function addCanvasAsA4Pages(
   }
 
   slices.forEach((slice, pageIndex) => {
-    const pageCanvas = renderSliceToCanvas(canvas, slice, pageHeightPx);
+    const contentCanvas = renderSliceToCanvas(canvas, slice, contentPageHeightPx);
+    const pageCanvas = composePageWithFooter(
+      contentCanvas,
+      canvas.width,
+      pageHeightPx,
+      footerCanvas
+    );
     if (pageIndex > 0) pdf.addPage();
-
-    if (pageIndex === slices.length - 1 && !slice.overflowsPage && slice.sliceH <= pageHeightPx + 2) {
-      const drawH = (slice.sliceH * pageWidth) / canvas.width;
-      pdf.addImage(canvasToPngDataUrl(pageCanvas), 'PNG', 0, 0, pageWidth, drawH, undefined, 'FAST');
-    } else {
-      pdf.addImage(
-        canvasToPngDataUrl(pageCanvas),
-        'PNG',
-        0,
-        0,
-        pageWidth,
-        pageHeight,
-        undefined,
-        'FAST'
-      );
-    }
+    pdf.addImage(
+      canvasToPngDataUrl(pageCanvas),
+      'PNG',
+      0,
+      0,
+      pageWidth,
+      pageHeight,
+      undefined,
+      'FAST'
+    );
   });
 }
 
@@ -969,6 +1069,8 @@ type VisualCaptureCache = {
   elementId: string;
   canvas: HTMLCanvasElement;
   pageHeightPx: number;
+  contentPageHeightPx: number;
+  footerCanvas: HTMLCanvasElement | null;
   blocks: BlockBox[];
   layout: PdfLayoutMeasure;
 };
@@ -979,19 +1081,29 @@ async function captureElementCanvas(
   element: HTMLElement,
   elementId: string,
   scale: number
-): Promise<{ canvas: HTMLCanvasElement; layout: PdfLayoutMeasure; blocks: BlockBox[] }> {
+): Promise<{
+  canvas: HTMLCanvasElement;
+  layout: PdfLayoutMeasure;
+  blocks: BlockBox[];
+  footerCanvas: HTMLCanvasElement | null;
+}> {
   if (document.fonts?.ready) {
     await document.fonts.ready;
   }
 
   const restoreImages = await embedImagesAsDataUrls(element);
   let restoreStyles: (() => void) | null = null;
+  let restoreFooter: (() => void) | null = null;
   try {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise((r) => setTimeout(r, 40));
 
     // Après reflow images : figer les styles calculés (Tailwind v4 → RGB/inline)
     restoreStyles = inlineComputedStylesForCapture(element);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    const footerCanvas = await capturePageFooterCanvas(element, scale);
+    restoreFooter = hidePageFooter(element);
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const layout = measurePdfLayoutFromElement(element);
@@ -1002,6 +1114,7 @@ async function captureElementCanvas(
       element.querySelectorAll('[data-pdf-module], [data-pdf-keep], tr, img')
     ).map((node) => {
       if (!(node instanceof HTMLElement) || node.classList.contains('no-print')) return 0;
+      if (isPageFooterElement(node)) return 0;
       return node.getBoundingClientRect().bottom - rootTop;
     });
     const contentBottom = Math.max(0, ...inkBottoms, 1);
@@ -1024,10 +1137,17 @@ async function captureElementCanvas(
       y: 0,
       scrollX: 0,
       scrollY: 0,
-      onclone: (clonedDoc) => prepareCloneForExport(clonedDoc, elementId),
+      onclone: (clonedDoc) => {
+        prepareCloneForExport(clonedDoc, elementId);
+        clonedDoc.querySelectorAll(PAGE_FOOTER_SELECTOR).forEach((el) => {
+          if (el instanceof HTMLElement) el.style.display = 'none';
+        });
+      },
       ignoreElements: (el) =>
         el instanceof HTMLElement &&
-        (el.classList.contains('no-print') || Boolean(el.closest('.no-print'))),
+        (el.classList.contains('no-print') ||
+          Boolean(el.closest('.no-print')) ||
+          isPageFooterElement(el)),
     });
 
     if (!canvas.width || !canvas.height) {
@@ -1035,8 +1155,9 @@ async function captureElementCanvas(
     }
 
     const blocks = collectKeepTogetherBlocks(element, canvas.width, canvas.height);
-    return { canvas, layout, blocks };
+    return { canvas, layout, blocks, footerCanvas };
   } finally {
+    restoreFooter?.();
     restoreStyles?.();
     restoreImages();
   }
@@ -1054,7 +1175,11 @@ export async function preparePdfVisualPreview(
   const restoreLayout = lockA4Layout(element);
   try {
     element.scrollIntoView({ block: 'nearest' });
-    const { canvas, layout, blocks } = await captureElementCanvas(element, elementId, 1.35);
+    const { canvas, layout, blocks, footerCanvas } = await captureElementCanvas(
+      element,
+      elementId,
+      1.35
+    );
     const pageWidth = 210;
     const pageHeight = 297;
     const prepared = preparePagedCanvas(canvas, pageWidth, pageHeight);
@@ -1066,10 +1191,16 @@ export async function preparePdfVisualPreview(
       }))
       .filter((b) => b.bottom - b.top >= 4);
 
+    const footerH = footerCanvas
+      ? footerHeightForPageWidth(footerCanvas, prepared.canvas.width)
+      : 0;
+
     visualCaptureCache = {
       elementId,
       canvas: prepared.canvas,
       pageHeightPx: prepared.pageHeightPx,
+      contentPageHeightPx: Math.max(160, prepared.pageHeightPx - footerH),
+      footerCanvas,
       blocks: clampedBlocks,
       layout,
     };
@@ -1100,7 +1231,7 @@ export function buildPdfVisualPages(
   const cache = visualCaptureCache;
   if (!cache) return [];
 
-  const { canvas, pageHeightPx, blocks, layout } = cache;
+  const { canvas, pageHeightPx, contentPageHeightPx, footerCanvas, blocks, layout } = cache;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return [];
 
@@ -1120,7 +1251,7 @@ export function buildPdfVisualPages(
   let slices = computePageSlices(
     canvas,
     ctx,
-    pageHeightPx,
+    contentPageHeightPx,
     blocks,
     forcedCutYs,
     pullTargets,
@@ -1133,7 +1264,13 @@ export function buildPdfVisualPages(
   }
 
   const pages = slices.map((slice, pageIndex) => {
-    const pageCanvas = renderSliceToCanvas(canvas, slice, pageHeightPx);
+    const contentCanvas = renderSliceToCanvas(canvas, slice, contentPageHeightPx);
+    const pageCanvas = composePageWithFooter(
+      contentCanvas,
+      canvas.width,
+      pageHeightPx,
+      footerCanvas
+    );
     // Cadre A4 blanc si la tranche est plus courte
     const framed = document.createElement('canvas');
     framed.width = canvas.width;
@@ -1250,6 +1387,7 @@ function collectDomKeepBlocks(root: HTMLElement): { top: number; bottom: number 
   nodes.forEach((node) => {
     if (!(node instanceof HTMLElement)) return;
     if (node.classList.contains('no-print') || node.closest('.no-print')) return;
+    if (isPageFooterElement(node)) return;
     if (node.tagName === 'TABLE') return;
     const r = node.getBoundingClientRect();
     if (r.height < 8 || r.width < 8) return;
@@ -1411,6 +1549,7 @@ function measurePdfLayoutFromElement(element: HTMLElement): PdfLayoutMeasure {
   element.querySelectorAll('[data-pdf-module]').forEach((node) => {
     if (!(node instanceof HTMLElement)) return;
     if (node.classList.contains('no-print') || node.closest('.no-print')) return;
+    if (isPageFooterElement(node)) return;
     const id = node.getAttribute('data-pdf-module');
     if (!id) return;
     const label = node.getAttribute('data-pdf-module-label') || id;
@@ -1550,6 +1689,7 @@ export async function downloadPDF(
   let restoreLayout: (() => void) | null = null;
   let restoreImages: (() => void) | null = null;
   let restoreStyles: (() => void) | null = null;
+  let restoreFooter: (() => void) | null = null;
 
   try {
     element.scrollIntoView({ block: 'nearest' });
@@ -1567,12 +1707,17 @@ export async function downloadPDF(
     restoreStyles = inlineComputedStylesForCapture(element);
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
+    const footerCanvas = await capturePageFooterCanvas(element, 2);
+    restoreFooter = hidePageFooter(element);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
     const width = A4_WIDTH_PX;
     const rootTop = element.getBoundingClientRect().top;
     const inkBottoms = Array.from(
       element.querySelectorAll('[data-pdf-module], [data-pdf-keep], tr, img')
     ).map((node) => {
       if (!(node instanceof HTMLElement) || node.classList.contains('no-print')) return 0;
+      if (isPageFooterElement(node)) return 0;
       return node.getBoundingClientRect().bottom - rootTop;
     });
     const contentBottom = Math.max(0, ...inkBottoms, 1);
@@ -1596,10 +1741,17 @@ export async function downloadPDF(
       y: 0,
       scrollX: 0,
       scrollY: 0,
-      onclone: (clonedDoc) => prepareCloneForExport(clonedDoc, elementId),
+      onclone: (clonedDoc) => {
+        prepareCloneForExport(clonedDoc, elementId);
+        clonedDoc.querySelectorAll(PAGE_FOOTER_SELECTOR).forEach((el) => {
+          if (el instanceof HTMLElement) el.style.display = 'none';
+        });
+      },
       ignoreElements: (el) =>
         el instanceof HTMLElement &&
-        (el.classList.contains('no-print') || Boolean(el.closest('.no-print'))),
+        (el.classList.contains('no-print') ||
+          Boolean(el.closest('.no-print')) ||
+          isPageFooterElement(el)),
     });
 
     if (!canvas.width || !canvas.height) {
@@ -1619,6 +1771,8 @@ export async function downloadPDF(
       canvas.height
     );
 
+    restoreFooter?.();
+    restoreFooter = null;
     restoreStyles?.();
     restoreStyles = null;
     restoreImages?.();
@@ -1639,7 +1793,8 @@ export async function downloadPDF(
       keepBlocks,
       forcedCutYs,
       pullTargets,
-      options.hiddenPageStarts || []
+      options.hiddenPageStarts || [],
+      footerCanvas
     );
 
     const cleanFileName = `${fileName.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
@@ -1656,6 +1811,7 @@ export async function downloadPDF(
     triggerBrowserDownload(pdfBlob, cleanFileName);
     return true;
   } catch (error) {
+    restoreFooter?.();
     restoreStyles?.();
     restoreImages?.();
     restoreLayout?.();
@@ -1708,6 +1864,15 @@ export function printDocument(elementId: string): void {
         background: white !important;
       }
       .no-print { display: none !important; }
+      /* Pied de page légal répété en bas de chaque page imprimée */
+      ${PAGE_FOOTER_SELECTOR} {
+        position: fixed !important;
+        left: 12mm !important;
+        right: 12mm !important;
+        bottom: 8mm !important;
+        margin: 0 !important;
+        background: white !important;
+      }
       @page { size: A4 portrait; margin: 0; }
     }
   `;

@@ -32,6 +32,7 @@ import {
 import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
 import {
+  A4_HEIGHT_PX,
   downloadPDF,
   preparePdfVisualPreview,
   disposePdfVisualPreview,
@@ -60,6 +61,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   onUpdatePreviewOptions,
 }) => {
   const paperRef = React.useRef<HTMLDivElement>(null);
+  const pageFooterRef = React.useRef<HTMLDivElement>(null);
+  const [pageCount, setPageCount] = React.useState(1);
+  const [pageFooterHeight, setPageFooterHeight] = React.useState(56);
   const [copied, setCopied] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
   const [downloadSuccess, setDownloadSuccess] = React.useState(false);
@@ -224,6 +228,38 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
   const amountInWords = doc.amountInWords || numberToWordsFR(totals.totalTTC, `Francs ${doc.currency || 'CFA'}`);
   const statusInfo = getStatusInfo(doc.status);
+
+  const legalFooterBlock = (
+    <>
+      {(profile.nif || profile.rccm) && (
+        <p className="font-mono font-semibold text-slate-600">
+          {[profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
+            .filter(Boolean)
+            .join('  ·  ')}
+        </p>
+      )}
+      {profile.legalFooter && (
+        <p className="font-semibold text-slate-500 whitespace-pre-line">{profile.legalFooter}</p>
+      )}
+      <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
+    </>
+  );
+
+  React.useEffect(() => {
+    const paper = paperRef.current;
+    if (!paper) return;
+
+    const measure = () => {
+      const footerH = pageFooterRef.current?.offsetHeight || 56;
+      setPageFooterHeight(footerH);
+      setPageCount(Math.max(1, Math.ceil(paper.scrollHeight / A4_HEIGHT_PX)));
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(paper);
+    return () => ro.disconnect();
+  }, [doc, options, profile.nif, profile.rccm, profile.legalFooter]);
 
   const openDownloadPlanner = async () => {
     if (isExporting || isCapturingPreview) return;
@@ -1132,14 +1168,14 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             )}
           </div>
 
-          {/* Footer: Signatures & Legal Info */}
-          <div
-            data-pdf-module="footer"
-            data-pdf-module-label="Signatures & mentions"
-            data-pdf-keep
-            className="pt-6 border-t border-slate-200 mt-6 space-y-8"
-          >
-            {options.showSignatures && (
+          {/* Signatures — une seule fois en fin de contenu */}
+          {options.showSignatures && (
+            <div
+              data-pdf-module="signatures"
+              data-pdf-module-label="Cadre signatures"
+              data-pdf-keep
+              className="pt-6 border-t border-slate-200 mt-6"
+            >
               <div className="flex justify-between items-end text-[11px] text-slate-600 px-6">
                 <div className="text-center w-48">
                   <p className="font-bold text-slate-800 mb-12">Le Client (Bon pour accord)</p>
@@ -1153,21 +1189,31 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   <p className="text-[9px] text-slate-400">Cachet et signature</p>
                 </div>
               </div>
-            )}
-
-            <div className="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 space-y-1">
-              {(profile.nif || profile.rccm) && (
-                <p className="font-mono font-semibold text-slate-600">
-                  {[profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
-                    .filter(Boolean)
-                    .join('  ·  ')}
-                </p>
-              )}
-              {profile.legalFooter && (
-                <p className="font-semibold text-slate-500 whitespace-pre-line">{profile.legalFooter}</p>
-              )}
-              <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
             </div>
+          )}
+
+          {/* Aperçu multi-pages : pied de page collé en bas de chaque page A4 */}
+          {pageCount > 1 &&
+            Array.from({ length: pageCount - 1 }, (_, pageIndex) => (
+              <div
+                key={`page-footer-preview-${pageIndex}`}
+                className="no-print absolute left-0 right-0 z-20 pointer-events-none bg-white pt-3 border-t border-slate-200 text-center text-[10px] text-slate-400 space-y-1 px-0"
+                style={{
+                  top: `${(pageIndex + 1) * A4_HEIGHT_PX - pageFooterHeight}px`,
+                }}
+                aria-hidden
+              >
+                {legalFooterBlock}
+              </div>
+            ))}
+
+          {/* Pied de page légal — capturé puis répété sur chaque page du PDF */}
+          <div
+            ref={pageFooterRef}
+            data-pdf-page-footer
+            className="mt-auto pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400 space-y-1 bg-white"
+          >
+            {legalFooterBlock}
           </div>
         </div>
         </div>
