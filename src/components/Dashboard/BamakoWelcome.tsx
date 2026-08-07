@@ -10,6 +10,10 @@ const BAMAKO_SLIDES = [
   '/mali-bamako-2.jpg',
   '/mali-bamako-3.jpg',
   '/mali-bamako-4.jpg',
+  '/mali-bamako-5.jpg',
+  '/mali-bamako-6.jpg',
+  '/mali-bamako-7.jpg',
+  '/mali-bamako-8.jpg',
 ] as const;
 
 const SLIDE_INTERVAL_MS = 5500;
