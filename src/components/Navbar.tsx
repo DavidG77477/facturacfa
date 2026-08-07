@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }[] = [
     {
       id: 'documents',
-      label: 'Docs',
+      label: 'Documents',
       icon: <FileText className="w-5 h-5" />,
       activeClass: 'text-blue-400',
     },
@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     },
     {
       id: 'analytics',
-      label: 'Stats',
+      label: 'Analyse',
       icon: <BarChart3 className="w-5 h-5" />,
       activeClass: 'text-blue-400',
     },
@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
-                <span>Analytics</span>
+                <span>Statistiques</span>
               </button>
 
               <button

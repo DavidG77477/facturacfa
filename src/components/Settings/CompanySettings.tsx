@@ -72,7 +72,7 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
       setProfile(next);
       await onSave(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Échec de l'upload.");
+      setError(err instanceof Error ? err.message : 'Échec du téléversement.');
     } finally {
       setUploading(null);
     }

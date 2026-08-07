@@ -62,7 +62,7 @@ export const SavePopup: React.FC<SavePopupProps> = ({
             isSuccess ? 'bg-blue-600 hover:bg-blue-700' : 'bg-rose-600 hover:bg-rose-700'
           }`}
         >
-          OK
+          Fermer
         </button>
       </div>
     </div>

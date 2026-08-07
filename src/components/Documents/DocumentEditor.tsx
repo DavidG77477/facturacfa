@@ -99,7 +99,7 @@ const FillableCell: React.FC<FillableCellProps> = ({
           type="button"
           tabIndex={-1}
           aria-label="Maintenir et tirer pour recopier"
-          title="Maintenir et tirer vers le bas pour recopier (comme Excel)"
+          title="Maintenir et tirer vers le bas pour recopier"
           onPointerDown={(e) => {
             e.preventDefault();
             e.stopPropagation();

@@ -8,6 +8,7 @@ import {
   User,
 } from '../types';
 import { EMPTY_BUSINESS_PROFILE } from '../utils/defaults';
+import { toFrenchError } from '../utils/frErrors';
 
 // ─── Row types (snake_case DB) ───────────────────────────────────────────────
 
@@ -261,7 +262,7 @@ export async function signUp(
     options: { data: { name, company_name: companyName, role: 'Fondateur / Dirigeant' } },
   });
 
-  if (authError) return { user: null, error: authError.message };
+  if (authError) return { user: null, error: toFrenchError(authError.message, 'Inscription échouée.') };
   if (!authData.user) return { user: null, error: 'Inscription échouée.' };
 
   const userId = authData.user.id;
@@ -279,13 +280,13 @@ export async function signUp(
     role: 'Fondateur / Dirigeant',
   });
 
-  if (profileError) return { user: null, error: profileError.message };
+  if (profileError) return { user: null, error: toFrenchError(profileError.message) };
 
   const { error: businessError } = await supabase
     .from('business_profiles')
     .upsert(mapBusinessProfileToRow(userId, businessProfile));
 
-  if (businessError) return { user: null, error: businessError.message };
+  if (businessError) return { user: null, error: toFrenchError(businessError.message) };
 
   const user = await fetchUserProfile(userId);
   return {
@@ -306,7 +307,7 @@ export async function signIn(
   password: string
 ): Promise<{ user: User | null; error: string | null }> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { user: null, error: error.message };
+  if (error) return { user: null, error: toFrenchError(error.message, 'Connexion échouée.') };
   if (!data.user) return { user: null, error: 'Connexion échouée.' };
 
   const user = await fetchUserProfile(data.user.id);
@@ -356,9 +357,9 @@ export async function fetchAllUserData(userId: string): Promise<UserData | null>
     supabase.from('trash_items').select('*').eq('user_id', userId).order('deleted_at', { ascending: false }),
   ]);
 
-  if (clientsRes.error) throw new Error(clientsRes.error.message);
-  if (documentsRes.error) throw new Error(documentsRes.error.message);
-  if (trashRes.error) throw new Error(trashRes.error.message);
+  if (clientsRes.error) throw new Error(toFrenchError(clientsRes.error.message));
+  if (documentsRes.error) throw new Error(toFrenchError(documentsRes.error.message));
+  if (trashRes.error) throw new Error(toFrenchError(trashRes.error.message));
 
   return {
     user,
@@ -374,13 +375,13 @@ export async function fetchAllUserData(userId: string): Promise<UserData | null>
 export async function upsertClient(userId: string, client: Client): Promise<Client> {
   const row = mapClientToRow(userId, client);
   const { data, error } = await supabase.from('clients').upsert(row).select().single();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
   return mapClientFromRow(data as ClientRow);
 }
 
 export async function deleteClientFromDb(userId: string, clientId: string): Promise<void> {
   const { error } = await supabase.from('clients').delete().eq('id', clientId).eq('user_id', userId);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
 }
 
 // ─── Documents CRUD ──────────────────────────────────────────────────────────
@@ -388,20 +389,20 @@ export async function deleteClientFromDb(userId: string, clientId: string): Prom
 export async function upsertDocument(userId: string, doc: InvoiceDocument): Promise<InvoiceDocument> {
   const row = mapDocumentToRow(userId, doc);
   const { data, error } = await supabase.from('documents').upsert(row).select().single();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
   return mapDocumentFromRow(data as DocumentRow);
 }
 
 export async function upsertDocuments(userId: string, docs: InvoiceDocument[]): Promise<InvoiceDocument[]> {
   const rows = docs.map((d) => mapDocumentToRow(userId, d));
   const { data, error } = await supabase.from('documents').upsert(rows).select();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
   return (data as DocumentRow[]).map(mapDocumentFromRow);
 }
 
 export async function deleteDocumentFromDb(userId: string, docId: string): Promise<void> {
   const { error } = await supabase.from('documents').delete().eq('id', docId).eq('user_id', userId);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
 }
 
 // ─── Business profile ────────────────────────────────────────────────────────
@@ -409,7 +410,7 @@ export async function deleteDocumentFromDb(userId: string, docId: string): Promi
 export async function saveBusinessProfile(userId: string, profile: BusinessProfile): Promise<BusinessProfile> {
   const row = mapBusinessProfileToRow(userId, profile);
   const { data, error } = await supabase.from('business_profiles').upsert(row).select().single();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
   return mapBusinessProfileFromRow(data as BusinessProfileRow);
 }
 
@@ -428,18 +429,18 @@ export async function insertTrashItem(userId: string, item: TrashItem): Promise<
     })
     .select()
     .single();
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
   return mapTrashFromRow(data as TrashRow);
 }
 
 export async function deleteTrashItemFromDb(userId: string, trashId: string): Promise<void> {
   const { error } = await supabase.from('trash_items').delete().eq('id', trashId).eq('user_id', userId);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
 }
 
 export async function emptyTrashInDb(userId: string): Promise<void> {
   const { error } = await supabase.from('trash_items').delete().eq('user_id', userId);
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(toFrenchError(error.message));
 }
 
 // ─── Document numbering ──────────────────────────────────────────────────────
@@ -489,7 +490,7 @@ export async function generateUniqueDocumentNumber(
     counter_key: counterKey,
     last_sequence: nextSeq,
   });
-  if (counterError) throw new Error(counterError.message);
+  if (counterError) throw new Error(toFrenchError(counterError.message));
 
   return candidate;
 }

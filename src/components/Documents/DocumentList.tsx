@@ -63,7 +63,7 @@ const StatusSelector: React.FC<{
           type="submit"
           className="px-2 py-1 bg-blue-600 text-white rounded-lg text-[10px] font-bold cursor-pointer hover:bg-blue-700"
         >
-          OK
+          Valider
         </button>
         <button
           type="button"
@@ -541,7 +541,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                   <th className="py-3 px-4">Date / Échéance</th>
                   <th className="py-3 px-4">Statut</th>
                   <th className="py-3 px-4 text-right">Montant TTC</th>
-                  <th className="py-3 px-4 text-center w-36">Actions</th>
+                  <th className="py-3 px-4 text-center w-36">Opérations</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
