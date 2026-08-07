@@ -189,6 +189,57 @@ html.dark [id^="pdf-preview-"] .border-slate-200\/90 {
     font-weight: 700;
   }
 
+  .hover-lift {
+    transition:
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.28s ease,
+      border-color 0.28s ease,
+      background-color 0.28s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 14px 30px rgba(6, 46, 44, 0.16),
+      0 4px 10px rgba(6, 46, 44, 0.08);
+    border-color: color-mix(in srgb, var(--color-brand-mid) 35%, transparent);
+  }
+
+  .hover-lift:active {
+    transform: translateY(-1px);
+  }
+
+  .hover-press {
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      filter 0.2s ease;
+  }
+
+  .hover-press:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.05);
+  }
+
+  .hover-press:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    filter: brightness(0.98);
+  }
+
+  .hover-glow {
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .hover-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-glow) 40%, transparent),
+      0 10px 24px rgba(45, 212, 191, 0.18);
+  }
+
   .app-card {
     background: #ffffff;
     border: 1px solid color-mix(in srgb, var(--color-brand-ink) 8%, transparent);
@@ -231,6 +282,63 @@ html.dark [id^="pdf-preview-"] .border-slate-200\/90 {
     outline: none;
     border-color: color-mix(in srgb, var(--color-brand-mid) 45%, transparent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-mid) 22%, transparent);
+  }
+}
+
+/* Hover global boutons / lignes (hors papier PDF) */
+main button:not(:disabled),
+header button:not(:disabled),
+footer button:not(:disabled) {
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    filter 0.2s ease;
+}
+
+main button:not(:disabled):hover {
+  transform: translateY(-1.5px);
+}
+
+main button:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+
+main tbody tr {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+main tbody tr:hover {
+  background-color: color-mix(in srgb, var(--color-brand-mist) 65%, white) !important;
+}
+
+html.dark main tbody tr:hover {
+  background-color: #1f3834 !important;
+}
+
+main a,
+main [role="button"] {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift,
+  .hover-press,
+  .hover-glow,
+  main button,
+  header button,
+  footer button,
+  main tbody tr {
+    transition: none !important;
+  }
+
+  .hover-lift:hover,
+  .hover-press:hover:not(:disabled),
+  .hover-glow:hover,
+  main button:not(:disabled):hover {
+    transform: none !important;
   }
 }
 

@@ -265,18 +265,18 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires Réglé</span>
             <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Factures encaissées</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold transition-transform duration-300 group-hover:scale-110">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">En Attente de Règlement</span>
             <div className="kpi-figure text-2xl text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
@@ -287,7 +287,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="hover-lift bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between cursor-default">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Encours Devis</span>
             <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
@@ -360,7 +360,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
             <button
               onClick={() => onNewDocument('devis')}
-              className="px-3.5 py-2.5 sm:py-2 bg-brand-mist hover:bg-brand-mist text-brand-ink font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="hover-press px-3.5 py-2.5 sm:py-2 bg-brand-mist hover:bg-brand-mist text-brand-ink font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouveau Devis</span>
@@ -368,7 +368,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
             <button
               onClick={() => onNewDocument('facture')}
-              className="px-4 py-2.5 sm:py-2 bg-brand-ink hover:bg-brand-deep text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="hover-press px-4 py-2.5 sm:py-2 bg-brand-ink hover:bg-brand-deep text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouvelle Facture</span>

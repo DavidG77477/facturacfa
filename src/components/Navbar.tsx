@@ -42,14 +42,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         key={id}
         type="button"
         onClick={() => setActiveTab(id)}
-        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
           active
             ? danger
-              ? 'bg-rose-600 text-white'
-              : 'bg-brand-mid text-white'
+              ? 'bg-rose-600 text-white scale-[1.03]'
+              : 'bg-brand-mid text-white scale-[1.03] shadow-md shadow-brand-glow/20'
             : danger
-              ? 'text-slate-300 hover:text-rose-300 hover:bg-white/5'
-              : 'text-slate-300 hover:text-white hover:bg-white/5'
+              ? 'text-slate-300 hover:text-rose-300 hover:bg-white/5 hover:scale-[1.03]'
+              : 'text-slate-300 hover:text-white hover:bg-white/5 hover:scale-[1.03]'
         }`}
       >
         {icon}

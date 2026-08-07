@@ -220,7 +220,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Encaissé */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="hover-lift bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encaissements Effectifs</span>
@@ -240,7 +240,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 2: En Attente / Impayés */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="hover-lift bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">En Attente de Paiement</span>
@@ -263,7 +263,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 3: Total Facturé */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="hover-lift bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Total Facturé (Volume TTC)</span>
@@ -281,7 +281,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 4: Volume & Taux Devis */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+        <div className="hover-lift bg-white p-5 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encours Devis & Conversion</span>

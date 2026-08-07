@@ -88,7 +88,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
 
         <button
           onClick={handleAddNew}
-          className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-brand-ink hover:bg-brand-deep text-white font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-sm cursor-pointer"
+          className="hover-press w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-brand-ink hover:bg-brand-deep text-white font-semibold rounded-xl shadow-sm flex items-center justify-center gap-2 text-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Nouveau Client</span>
@@ -173,7 +173,7 @@ export const ClientManager: React.FC<ClientManagerProps> = ({
             return (
               <div
                 key={client.id}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all p-5 flex flex-col justify-between"
+                className="hover-lift bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between"
               >
                 <div>
                   {/* Category Badge & Actions Header */}

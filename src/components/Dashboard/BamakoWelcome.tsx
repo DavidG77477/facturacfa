@@ -147,7 +147,7 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
   return (
     <section
       data-bamako-welcome
-      className="relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-brand-ink/10 shadow-sm"
+      className="hover-glow relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-brand-ink/10 shadow-sm"
     >
       {BAMAKO_SLIDES.map((src, i) => (
         <img
