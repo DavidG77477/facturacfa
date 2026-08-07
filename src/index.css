@@ -3,3 +3,94 @@
 /* Garantit le scan des sources en build Vercel / CI */
 @source "../index.html";
 @source "./**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --color-brand-ink: #0a3d3a;
+  --color-brand-deep: #062e2c;
+  --color-brand-mid: #147a72;
+  --color-brand-glow: #2dd4bf;
+  --color-brand-sand: #f3ebe0;
+  --color-brand-paper: #faf7f2;
+}
+
+@keyframes auth-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes auth-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.04);
+  }
+}
+
+@keyframes auth-shimmer {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes auth-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.auth-fade-up {
+  animation: auth-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-fade-up-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.auth-fade-up-delay-2 {
+  animation-delay: 0.22s;
+}
+
+.auth-fade-up-delay-3 {
+  animation-delay: 0.34s;
+}
+
+.auth-drift {
+  animation: auth-drift 14s ease-in-out infinite;
+}
+
+.auth-shimmer {
+  animation: auth-shimmer 6s ease-in-out infinite;
+}
+
+.auth-panel-in {
+  animation: auth-panel-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-fade-up,
+  .auth-panel-in,
+  .auth-drift,
+  .auth-shimmer {
+    animation: none !important;
+  }
+}
