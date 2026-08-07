@@ -871,20 +871,6 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   </div>
                 </div>
 
-                {(profile.nif || profile.rccm) && (
-                  <div className="flex flex-wrap items-center gap-2 pt-2 text-[10px] text-slate-600 font-mono">
-                    {profile.nif && (
-                      <span className="bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/80 font-bold">
-                        NIF : <strong className="text-slate-900">{profile.nif}</strong>
-                      </span>
-                    )}
-                    {profile.rccm && (
-                      <span className="bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200/80 font-bold">
-                        RCCM : <strong className="text-slate-900">{profile.rccm}</strong>
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Document Header Metadata Box */}
@@ -1169,13 +1155,17 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               </div>
             )}
 
-            <div className="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 space-y-0.5">
-              <p className="font-semibold text-slate-500">
-                {profile.legalFooter ||
-                  [profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
+            <div className="text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3 space-y-1">
+              {(profile.nif || profile.rccm) && (
+                <p className="font-mono font-semibold text-slate-600">
+                  {[profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
                     .filter(Boolean)
-                    .join(' - ')}
-              </p>
+                    .join('  ·  ')}
+                </p>
+              )}
+              {profile.legalFooter && (
+                <p className="font-semibold text-slate-500 whitespace-pre-line">{profile.legalFooter}</p>
+              )}
               <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
             </div>
           </div>
