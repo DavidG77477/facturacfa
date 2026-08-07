@@ -8,14 +8,17 @@ import { AnalyticsDashboard } from './components/Analytics/AnalyticsDashboard';
 import { ClientFormModal } from './components/Clients/ClientFormModal';
 import { CompanySettings } from './components/Settings/CompanySettings';
 import { TrashManager } from './components/Trash/TrashManager';
+import { TodoList } from './components/Todos/TodoList';
 import { AuthModal } from './components/Auth/AuthModal';
 import { SavePopup } from './components/Common/SavePopup';
 import {
+  AppTab,
   BusinessProfile,
   Client,
   InvoiceDocument,
   DocumentStatus,
   DocumentType,
+  TodoItem,
   TrashItem,
   User,
 } from './types';
@@ -24,6 +27,7 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 import {
   deleteClientFromDb,
   deleteDocumentFromDb,
+  deleteTodoFromDb,
   deleteTrashItemFromDb,
   emptyTrashInDb,
   fetchAllUserData,
@@ -32,12 +36,14 @@ import {
   newClientId,
   newDocumentId,
   newItemId,
+  newTodoId,
   newTrashId,
   saveBusinessProfile,
   signOut,
   upsertClient,
   upsertDocument,
   upsertDocuments,
+  upsertTodoItem,
 } from './services/database';
 import { ArrowLeft, Loader2, Shield } from 'lucide-react';
 
@@ -50,9 +56,10 @@ export default function App() {
   const [clients, setClients] = useState<Client[]>([]);
   const [documents, setDocuments] = useState<InvoiceDocument[]>([]);
   const [trashItems, setTrashItems] = useState<TrashItem[]>([]);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({ ...EMPTY_BUSINESS_PROFILE });
 
-  const [activeTab, setActiveTab] = useState<'documents' | 'clients' | 'analytics' | 'settings' | 'trash'>('documents');
+  const [activeTab, setActiveTab] = useState<AppTab>('documents');
   const [editorMode, setEditorMode] = useState(false);
   const [editingDocument, setEditingDocument] = useState<InvoiceDocument | null>(null);
   const [newDocumentType, setNewDocumentType] = useState<DocumentType>('facture');
@@ -82,6 +89,7 @@ export default function App() {
       setClients(data.clients);
       setDocuments(data.documents);
       setTrashItems(data.trashItems);
+      setTodos(data.todos);
       setBusinessProfile(data.businessProfile);
     } catch (err) {
       setDataError(err instanceof Error ? err.message : 'Erreur de chargement des données.');
@@ -118,6 +126,7 @@ export default function App() {
         setClients([]);
         setDocuments([]);
         setTrashItems([]);
+        setTodos([]);
         setBusinessProfile({ ...EMPTY_BUSINESS_PROFILE });
         setEditorMode(false);
         setEditingDocument(null);
@@ -165,9 +174,69 @@ export default function App() {
     setClients([]);
     setDocuments([]);
     setTrashItems([]);
+    setTodos([]);
     setBusinessProfile({ ...EMPTY_BUSINESS_PROFILE });
     setEditorMode(false);
     setPreviewDocument(null);
+  };
+
+  const sortTodos = (list: TodoItem[]) =>
+    [...list].sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if (a.position !== b.position) return a.position - b.position;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+  const handleAddTodo = async (title: string) => {
+    if (!currentUser) return;
+    const now = new Date().toISOString();
+    const todo: TodoItem = {
+      id: newTodoId(),
+      title: title.trim(),
+      done: false,
+      position: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    try {
+      const saved = await upsertTodoItem(currentUser.id, todo);
+      setTodos((prev) => sortTodos([saved, ...prev]));
+      showFlash('success', 'Tâche ajoutée');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Échec de l\'ajout de la tâche.';
+      showFlash('error', message);
+      throw err;
+    }
+  };
+
+  const handleToggleTodo = async (id: string, done: boolean) => {
+    if (!currentUser) return;
+    const existing = todos.find((t) => t.id === id);
+    if (!existing) return;
+    const updated: TodoItem = { ...existing, done, updatedAt: new Date().toISOString() };
+    setTodos((prev) => sortTodos(prev.map((t) => (t.id === id ? updated : t))));
+    try {
+      const saved = await upsertTodoItem(currentUser.id, updated);
+      setTodos((prev) => sortTodos(prev.map((t) => (t.id === id ? saved : t))));
+    } catch (err) {
+      setTodos((prev) => sortTodos(prev.map((t) => (t.id === id ? existing : t))));
+      const message = err instanceof Error ? err.message : 'Échec de la mise à jour.';
+      showFlash('error', message);
+    }
+  };
+
+  const handleDeleteTodo = async (id: string) => {
+    if (!currentUser) return;
+    const existing = todos.find((t) => t.id === id);
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await deleteTodoFromDb(currentUser.id, id);
+      showFlash('success', 'Tâche supprimée');
+    } catch (err) {
+      if (existing) setTodos((prev) => sortTodos([existing, ...prev]));
+      const message = err instanceof Error ? err.message : 'Échec de la suppression.';
+      showFlash('error', message);
+    }
   };
 
   const handleSaveClient = async (clientData: Omit<Client, 'id' | 'createdAt'> & { id?: string }) => {
@@ -590,6 +659,15 @@ export default function App() {
                 onSaveClient={handleSaveClient}
                 onDeleteClient={handleDeleteClient}
                 onCreateDocumentForClient={handleCreateDocumentForClient}
+              />
+            )}
+
+            {activeTab === 'todos' && (
+              <TodoList
+                todos={todos}
+                onAdd={handleAddTodo}
+                onToggle={handleToggleTodo}
+                onDelete={handleDeleteTodo}
               />
             )}
 

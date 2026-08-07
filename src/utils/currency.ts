@@ -1,4 +1,4 @@
-import { DocumentItem } from '../types';
+import { DocumentItem, isSectionItem } from '../types';
 
 /**
  * Format a number into FCFA currency display
@@ -101,6 +101,16 @@ export function numberToWordsFR(amount: number, currencySuffix: string = 'Francs
 }
 
 export function calculateItemTotals(item: DocumentItem) {
+  if (isSectionItem(item)) {
+    return {
+      gross: 0,
+      discountAmount: 0,
+      subtotalHT: 0,
+      taxAmount: 0,
+      totalTTC: 0,
+    };
+  }
+
   const gross = item.quantity * item.unitPrice;
   const discountAmount = gross * ((item.discount || 0) / 100);
   const subtotalHT = gross - discountAmount;
@@ -122,6 +132,8 @@ export function calculateDocumentTotals(items: DocumentItem[], globalTaxRate?: n
   let totalTVA = 0;
 
   items.forEach((item) => {
+    if (isSectionItem(item)) return;
+
     const calc = calculateItemTotals(item);
     totalHT += calc.subtotalHT;
     totalDiscount += calc.discountAmount;

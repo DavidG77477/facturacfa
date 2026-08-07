@@ -9,6 +9,7 @@
 | `clients` | Carnet clients | `Client` |
 | `documents` | Devis & factures (lignes + options PDF en JSONB) | `InvoiceDocument` |
 | `trash_items` | Corbeille (restauration) | `TrashItem` |
+| `todo_items` | Liste de tâches personnelles | `TodoItem` |
 | `document_counters` | Numérotation FAC/DEV séquentielle | `documentNumber.ts` |
 
 ## Appliquer le schéma

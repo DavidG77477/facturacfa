@@ -1,11 +1,11 @@
 import React from 'react';
-import { FileText, Users, Building, BarChart3, Trash2, LogOut } from 'lucide-react';
-import { BusinessProfile } from '../types';
+import { FileText, Users, Building, BarChart3, Trash2, LogOut, ListTodo } from 'lucide-react';
+import { AppTab, BusinessProfile } from '../types';
 import { ThemeToggle } from './Common/ThemeToggle';
 
 interface NavbarProps {
-  activeTab: 'documents' | 'clients' | 'analytics' | 'settings' | 'trash';
-  setActiveTab: (tab: 'documents' | 'clients' | 'analytics' | 'settings' | 'trash') => void;
+  activeTab: AppTab;
+  setActiveTab: (tab: AppTab) => void;
   businessProfile: BusinessProfile;
   trashCount?: number;
   onQuickNewDocument: (type?: 'devis' | 'facture') => void;
@@ -24,25 +24,26 @@ export const Navbar: React.FC<NavbarProps> = ({
   const displayName = businessProfile.companyName || 'Mon entreprise';
 
   const mobileTabs: {
-    id: typeof activeTab;
+    id: AppTab;
     label: string;
     icon: React.ReactNode;
   }[] = [
-    { id: 'documents', label: 'Documents', icon: <FileText className="w-5 h-5" /> },
+    { id: 'documents', label: 'Docs', icon: <FileText className="w-5 h-5" /> },
     { id: 'clients', label: 'Clients', icon: <Users className="w-5 h-5" /> },
-    { id: 'analytics', label: 'Analyse', icon: <BarChart3 className="w-5 h-5" /> },
+    { id: 'todos', label: 'Tâches', icon: <ListTodo className="w-5 h-5" /> },
+    { id: 'analytics', label: 'Stats', icon: <BarChart3 className="w-5 h-5" /> },
     { id: 'settings', label: 'Profil', icon: <Building className="w-5 h-5" /> },
     { id: 'trash', label: 'Corbeille', icon: <Trash2 className="w-5 h-5" /> },
   ];
 
-  const navBtn = (id: typeof activeTab, label: string, icon: React.ReactNode, danger = false) => {
+  const navBtn = (id: AppTab, label: string, icon: React.ReactNode, danger = false) => {
     const active = activeTab === id;
     return (
       <button
         key={id}
         type="button"
         onClick={() => setActiveTab(id)}
-        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
           active
             ? danger
               ? 'bg-rose-600 text-white scale-[1.03]'
@@ -91,6 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <nav className="hidden md:flex items-center gap-0.5 bg-brand-deep/50 p-1 rounded-xl border border-white/8">
               {navBtn('documents', 'Devis & Factures', <FileText className="w-4 h-4" />)}
               {navBtn('clients', 'Clients', <Users className="w-4 h-4" />)}
+              {navBtn('todos', 'Todolist', <ListTodo className="w-4 h-4" />)}
               {navBtn('analytics', 'Statistiques', <BarChart3 className="w-4 h-4" />)}
               {navBtn('settings', 'Profil', <Building className="w-4 h-4" />)}
               {navBtn('trash', 'Corbeille', <Trash2 className="w-4 h-4" />, true)}
@@ -128,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-brand-ink/95 backdrop-blur-md border-t border-brand-deep pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-5 h-16">
+        <div className="grid grid-cols-6 h-16">
           {mobileTabs.map((tab) => {
             const active = activeTab === tab.id;
             return (
@@ -136,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold cursor-pointer transition-colors ${
+                className={`relative flex flex-col items-center justify-center gap-0.5 text-[9px] font-semibold cursor-pointer transition-colors ${
                   active
                     ? tab.id === 'trash'
                       ? 'text-rose-400'

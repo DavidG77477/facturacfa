@@ -4,6 +4,7 @@ import {
   Client,
   DocumentType,
   InvoiceDocument,
+  TodoItem,
   TrashItem,
   User,
 } from '../types';
@@ -89,6 +90,16 @@ interface TrashRow {
   document_data: InvoiceDocument | null;
   client_data: Client | null;
   deleted_at: string;
+}
+
+interface TodoRow {
+  id: string;
+  user_id: string;
+  title: string;
+  done: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─── Mappers ─────────────────────────────────────────────────────────────────
@@ -237,6 +248,29 @@ function mapTrashFromRow(row: TrashRow): TrashItem {
   };
 }
 
+function mapTodoFromRow(row: TodoRow): TodoItem {
+  return {
+    id: row.id,
+    title: row.title,
+    done: Boolean(row.done),
+    position: Number(row.position) || 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapTodoToRow(userId: string, todo: TodoItem): TodoRow {
+  return {
+    id: todo.id,
+    user_id: userId,
+    title: todo.title,
+    done: todo.done,
+    position: todo.position,
+    created_at: todo.createdAt,
+    updated_at: todo.updatedAt,
+  };
+}
+
 function mapUserFromRows(profile: ProfileRow, business: BusinessProfileRow | null): User {
   return {
     id: profile.id,
@@ -344,6 +378,7 @@ export interface UserData {
   clients: Client[];
   documents: InvoiceDocument[];
   trashItems: TrashItem[];
+  todos: TodoItem[];
   businessProfile: BusinessProfile;
 }
 
@@ -351,21 +386,30 @@ export async function fetchAllUserData(userId: string): Promise<UserData | null>
   const user = await fetchUserProfile(userId);
   if (!user) return null;
 
-  const [clientsRes, documentsRes, trashRes] = await Promise.all([
+  const [clientsRes, documentsRes, trashRes, todosRes] = await Promise.all([
     supabase.from('clients').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
     supabase.from('documents').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
     supabase.from('trash_items').select('*').eq('user_id', userId).order('deleted_at', { ascending: false }),
+    supabase
+      .from('todo_items')
+      .select('*')
+      .eq('user_id', userId)
+      .order('done', { ascending: true })
+      .order('position', { ascending: true })
+      .order('created_at', { ascending: false }),
   ]);
 
   if (clientsRes.error) throw new Error(toFrenchError(clientsRes.error.message));
   if (documentsRes.error) throw new Error(toFrenchError(documentsRes.error.message));
   if (trashRes.error) throw new Error(toFrenchError(trashRes.error.message));
+  if (todosRes.error) throw new Error(toFrenchError(todosRes.error.message));
 
   return {
     user,
     clients: (clientsRes.data as ClientRow[]).map(mapClientFromRow),
     documents: (documentsRes.data as DocumentRow[]).map(mapDocumentFromRow),
     trashItems: (trashRes.data as TrashRow[]).map(mapTrashFromRow),
+    todos: (todosRes.data as TodoRow[]).map(mapTodoFromRow),
     businessProfile: user.businessProfile,
   };
 }
@@ -412,6 +456,20 @@ export async function saveBusinessProfile(userId: string, profile: BusinessProfi
   const { data, error } = await supabase.from('business_profiles').upsert(row).select().single();
   if (error) throw new Error(toFrenchError(error.message));
   return mapBusinessProfileFromRow(data as BusinessProfileRow);
+}
+
+// ─── Todos CRUD ──────────────────────────────────────────────────────────────
+
+export async function upsertTodoItem(userId: string, todo: TodoItem): Promise<TodoItem> {
+  const row = mapTodoToRow(userId, todo);
+  const { data, error } = await supabase.from('todo_items').upsert(row).select().single();
+  if (error) throw new Error(toFrenchError(error.message));
+  return mapTodoFromRow(data as TodoRow);
+}
+
+export async function deleteTodoFromDb(userId: string, todoId: string): Promise<void> {
+  const { error } = await supabase.from('todo_items').delete().eq('id', todoId).eq('user_id', userId);
+  if (error) throw new Error(toFrenchError(error.message));
 }
 
 // ─── Trash ───────────────────────────────────────────────────────────────────
@@ -520,5 +578,9 @@ export function newTrashId(): string {
 }
 
 export function newItemId(): string {
+  return crypto.randomUUID();
+}
+
+export function newTodoId(): string {
   return crypto.randomUUID();
 }

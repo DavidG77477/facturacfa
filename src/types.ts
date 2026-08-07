@@ -20,8 +20,12 @@ export interface Client {
   notes?: string;
 }
 
+/** `section` = titre / séparateur de groupe (non facturable). Absent ou `line` = ligne classique. */
+export type DocumentItemKind = 'line' | 'section';
+
 export interface DocumentItem {
   id: string;
+  kind?: DocumentItemKind;
   description: string;
   length?: number | string; // Longueur / Hauteur (ex: 2000 mm)
   width?: number | string;  // Largeur (ex: 1500 mm)
@@ -30,6 +34,10 @@ export interface DocumentItem {
   unitPrice: number; // in FCFA
   taxRate: number; // e.g. 18 for 18% TVA, or 0
   discount: number; // percentage discount e.g. 5
+}
+
+export function isSectionItem(item: Pick<DocumentItem, 'kind'>): boolean {
+  return item.kind === 'section';
 }
 
 export interface BusinessProfile {
@@ -140,3 +148,14 @@ export interface TrashItem {
   documentData?: InvoiceDocument;
   clientData?: Client;
 }
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  done: boolean;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type AppTab = 'documents' | 'clients' | 'todos' | 'analytics' | 'settings' | 'trash';
