@@ -482,7 +482,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-paper text-slate-800 dark:text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-transparent text-slate-800 dark:text-slate-100 flex flex-col font-sans">
       <Navbar
         activeTab={activeTab}
         setActiveTab={(tab) => {
@@ -631,7 +631,7 @@ export default function App() {
         />
       )}
 
-      <footer className="bg-white/80 border-t border-brand-ink/8 py-4 text-center text-xs text-slate-500">
+      <footer className="bg-white/70 dark:bg-[#13201e]/80 backdrop-blur-sm border-t border-brand-ink/8 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
           <p className="font-medium text-slate-600">
             © {new Date().getFullYear()}{' '}

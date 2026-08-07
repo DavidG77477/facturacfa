@@ -111,7 +111,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     'w-full pl-11 pr-4 py-3 bg-white/80 border border-[#0a3d3a]/12 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#147a72]/35 focus:border-[#147a72]/40 text-sm transition-shadow';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto font-sans bg-[var(--color-brand-paper)]">
+    <div className="fixed inset-0 z-50 overflow-y-auto font-sans bg-transparent">
       <div className="min-h-full grid lg:grid-cols-2">
         {/* Brand / visual plane */}
         <aside className="relative min-h-[42vh] lg:min-h-full overflow-hidden bg-[var(--color-brand-ink)] text-[var(--color-brand-sand)]">
@@ -172,7 +172,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </aside>
 
         {/* Auth form panel */}
-        <section className="relative flex items-center justify-center px-5 sm:px-8 py-10 lg:py-16 bg-[var(--color-brand-paper)]">
+        <section className="relative flex items-center justify-center px-5 sm:px-8 py-10 lg:py-16 bg-transparent">
           <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
             <ThemeToggle
               className="!border-brand-ink/15 !text-brand-ink dark:!border-white/15 dark:!text-brand-sand hover:!bg-brand-mist dark:hover:!bg-white/10"
@@ -187,11 +187,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }}
           />
 
-          <div className="relative w-full max-w-[420px] auth-panel-in">
+          <div className="relative w-full max-w-[420px] auth-panel-in rounded-3xl bg-white/75 dark:bg-[#13201e]/80 backdrop-blur-md border border-white/50 dark:border-white/10 p-6 sm:p-8 shadow-sm">
             <div className="mb-8">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--color-brand-ink)] tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--color-brand-ink)] dark:text-brand-sand tracking-tight">
                 {title}
-              </h2>
               <p className="text-sm text-slate-500 mt-2 leading-relaxed">{subtitle}</p>
             </div>
 
