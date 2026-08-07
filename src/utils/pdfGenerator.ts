@@ -53,12 +53,49 @@ function footerHeightForPageWidth(footer: HTMLCanvasElement, pageWidthPx: number
   return Math.max(1, Math.round((footer.height / Math.max(footer.width, 1)) * pageWidthPx));
 }
 
+export interface PageFooterMeta {
+  documentNumber?: string;
+  pageIndex: number;
+  pageCount: number;
+}
+
+/** Hauteur mini réservée en bas pour le n° document + pagination. */
+function pageMetaBandHeight(pageWidthPx: number): number {
+  return Math.max(22, Math.round(pageWidthPx * 0.032));
+}
+
+function drawPageFooterMeta(
+  ctx: CanvasRenderingContext2D,
+  pageWidthPx: number,
+  pageHeightPx: number,
+  meta: PageFooterMeta,
+  footerBandH: number
+): void {
+  const pageLabel = `${meta.pageIndex + 1}/${Math.max(1, meta.pageCount)}`;
+  const docLabel = (meta.documentNumber || '').trim();
+  const line = docLabel ? `${docLabel}  ·  ${pageLabel}` : pageLabel;
+
+  const fontSize = Math.max(10, Math.round(pageWidthPx * 0.0135));
+  const padX = Math.max(28, Math.round(pageWidthPx * 0.045));
+  const band = Math.max(footerBandH, pageMetaBandHeight(pageWidthPx));
+  const y = pageHeightPx - Math.round(band * 0.42);
+
+  ctx.save();
+  ctx.font = `600 ${fontSize}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+  ctx.fillStyle = '#64748b';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(line, pageWidthPx - padX, y);
+  ctx.restore();
+}
+
 /** Compose une page A4 : contenu en haut, pied de page collé en bas. */
 function composePageWithFooter(
   contentCanvas: HTMLCanvasElement,
   pageWidthPx: number,
   pageHeightPx: number,
-  footerCanvas: HTMLCanvasElement | null
+  footerCanvas: HTMLCanvasElement | null,
+  meta?: PageFooterMeta | null
 ): HTMLCanvasElement {
   const out = document.createElement('canvas');
   out.width = pageWidthPx;
@@ -69,7 +106,10 @@ function composePageWithFooter(
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, out.width, out.height);
 
-  const footerH = footerCanvas ? footerHeightForPageWidth(footerCanvas, pageWidthPx) : 0;
+  const capturedFooterH = footerCanvas ? footerHeightForPageWidth(footerCanvas, pageWidthPx) : 0;
+  const metaH = meta ? pageMetaBandHeight(pageWidthPx) : 0;
+  // Si le pied légal est déjà capturé, la pagination se dessine dedans ; sinon on réserve une bande.
+  const footerH = Math.max(capturedFooterH, meta && !footerCanvas ? metaH + 8 : capturedFooterH);
   const contentMaxH = Math.max(1, pageHeightPx - footerH);
   const srcH = Math.min(contentCanvas.height, Math.round(contentMaxH * (contentCanvas.width / pageWidthPx)));
 
@@ -85,7 +125,7 @@ function composePageWithFooter(
     Math.min(contentMaxH, Math.round(srcH * (pageWidthPx / contentCanvas.width)))
   );
 
-  if (footerCanvas && footerH > 0) {
+  if (footerCanvas && capturedFooterH > 0) {
     ctx.drawImage(
       footerCanvas,
       0,
@@ -93,10 +133,14 @@ function composePageWithFooter(
       footerCanvas.width,
       footerCanvas.height,
       0,
-      pageHeightPx - footerH,
+      pageHeightPx - capturedFooterH,
       pageWidthPx,
-      footerH
+      capturedFooterH
     );
+  }
+
+  if (meta) {
+    drawPageFooterMeta(ctx, pageWidthPx, pageHeightPx, meta, capturedFooterH || footerH);
   }
 
   return out;
@@ -152,6 +196,8 @@ export interface DownloadPdfOptions {
   pullToPreviousModuleIds?: string[];
   /** Pages vides masquées (startY canvas arrondi) */
   hiddenPageStarts?: number[];
+  /** N° document affiché en bas à droite avec la pagination (ex. FAC-2026-00001 · 1/2) */
+  documentNumber?: string;
 }
 
 type PullTarget = { top: number; bottom: number };
@@ -1018,7 +1064,8 @@ function addCanvasAsA4Pages(
   forcedCutYs: number[] = [],
   pullTargets: PullTarget[] = [],
   hiddenPageStarts: number[] = [],
-  footerCanvas: HTMLCanvasElement | null = null
+  footerCanvas: HTMLCanvasElement | null = null,
+  documentNumber?: string
 ): void {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -1027,7 +1074,10 @@ function addCanvasAsA4Pages(
     pageWidth,
     pageHeight
   );
-  const footerH = footerCanvas ? footerHeightForPageWidth(footerCanvas, canvas.width) : 0;
+  const footerH = Math.max(
+    footerCanvas ? footerHeightForPageWidth(footerCanvas, canvas.width) : 0,
+    pageMetaBandHeight(canvas.width)
+  );
   const contentPageHeightPx = Math.max(160, pageHeightPx - footerH);
   const hiddenSet = new Set(hiddenPageStarts.map((y) => Math.round(y)));
   let slices = computePageSlices(
@@ -1043,13 +1093,15 @@ function addCanvasAsA4Pages(
     slices = slices.filter((s, idx) => idx === 0 || !hiddenSet.has(Math.round(s.startY)));
   }
 
+  const pageCount = Math.max(1, slices.length);
   slices.forEach((slice, pageIndex) => {
     const contentCanvas = renderSliceToCanvas(canvas, slice, contentPageHeightPx);
     const pageCanvas = composePageWithFooter(
       contentCanvas,
       canvas.width,
       pageHeightPx,
-      footerCanvas
+      footerCanvas,
+      { documentNumber, pageIndex, pageCount }
     );
     if (pageIndex > 0) pdf.addPage();
     pdf.addImage(
@@ -1071,6 +1123,7 @@ type VisualCaptureCache = {
   pageHeightPx: number;
   contentPageHeightPx: number;
   footerCanvas: HTMLCanvasElement | null;
+  documentNumber?: string;
   blocks: BlockBox[];
   layout: PdfLayoutMeasure;
 };
@@ -1167,7 +1220,8 @@ async function captureElementCanvas(
  * Capture le document pour l'aperçu visuel des pages (à appeler à l'ouverture du modal).
  */
 export async function preparePdfVisualPreview(
-  elementId: string
+  elementId: string,
+  documentNumber?: string
 ): Promise<PdfLayoutMeasure | null> {
   const element = document.getElementById(elementId);
   if (!element) return null;
@@ -1191,9 +1245,10 @@ export async function preparePdfVisualPreview(
       }))
       .filter((b) => b.bottom - b.top >= 4);
 
-    const footerH = footerCanvas
-      ? footerHeightForPageWidth(footerCanvas, prepared.canvas.width)
-      : 0;
+    const footerH = Math.max(
+      footerCanvas ? footerHeightForPageWidth(footerCanvas, prepared.canvas.width) : 0,
+      pageMetaBandHeight(prepared.canvas.width)
+    );
 
     visualCaptureCache = {
       elementId,
@@ -1201,6 +1256,7 @@ export async function preparePdfVisualPreview(
       pageHeightPx: prepared.pageHeightPx,
       contentPageHeightPx: Math.max(160, prepared.pageHeightPx - footerH),
       footerCanvas,
+      documentNumber,
       blocks: clampedBlocks,
       layout,
     };
@@ -1231,7 +1287,8 @@ export function buildPdfVisualPages(
   const cache = visualCaptureCache;
   if (!cache) return [];
 
-  const { canvas, pageHeightPx, contentPageHeightPx, footerCanvas, blocks, layout } = cache;
+  const { canvas, pageHeightPx, contentPageHeightPx, footerCanvas, documentNumber, blocks, layout } =
+    cache;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return [];
 
@@ -1263,13 +1320,15 @@ export function buildPdfVisualPages(
     slices = slices.filter((s, idx) => idx === 0 || !hiddenSet.has(Math.round(s.startY)));
   }
 
+  const pageCount = Math.max(1, slices.length);
   const pages = slices.map((slice, pageIndex) => {
     const contentCanvas = renderSliceToCanvas(canvas, slice, contentPageHeightPx);
     const pageCanvas = composePageWithFooter(
       contentCanvas,
       canvas.width,
       pageHeightPx,
-      footerCanvas
+      footerCanvas,
+      { documentNumber, pageIndex, pageCount }
     );
     // Cadre A4 blanc si la tranche est plus courte
     const framed = document.createElement('canvas');
@@ -1794,7 +1853,8 @@ export async function downloadPDF(
       forcedCutYs,
       pullTargets,
       options.hiddenPageStarts || [],
-      footerCanvas
+      footerCanvas,
+      options.documentNumber
     );
 
     const cleanFileName = `${fileName.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;

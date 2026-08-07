@@ -267,7 +267,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     setIsCapturingPreview(true);
     setPdfLayout(null);
     try {
-      const layout = await preparePdfVisualPreview(elementId);
+      const layout = await preparePdfVisualPreview(elementId, doc.number);
       setPdfLayout(layout);
     } finally {
       setIsCapturingPreview(false);
@@ -316,6 +316,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           breakAfterModuleIds: optionsRef.current.pageBreakAfterModules || [],
           pullToPreviousModuleIds: optionsRef.current.pullToPreviousPageModules || [],
           hiddenPageStarts: optionsRef.current.hiddenPdfPageStarts || [],
+          documentNumber: doc.number,
         }
       );
       if (success) {
@@ -1192,18 +1193,24 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             </div>
           )}
 
-          {/* Aperçu multi-pages : pied de page collé en bas de chaque page A4 */}
+          {/* Aperçu multi-pages : pied légal + n° doc / pagination en bas de chaque page A4 */}
           {pageCount > 1 &&
             Array.from({ length: pageCount - 1 }, (_, pageIndex) => (
               <div
                 key={`page-footer-preview-${pageIndex}`}
-                className="no-print absolute left-0 right-0 z-20 pointer-events-none bg-white pt-3 border-t border-slate-200 text-center text-[10px] text-slate-400 space-y-1 px-0"
+                className="no-print absolute left-0 right-0 z-20 pointer-events-none bg-white pt-3 border-t border-slate-200 px-0"
                 style={{
                   top: `${(pageIndex + 1) * A4_HEIGHT_PX - pageFooterHeight}px`,
+                  minHeight: pageFooterHeight,
                 }}
                 aria-hidden
               >
-                {legalFooterBlock}
+                <div className="relative text-center text-[10px] text-slate-400 space-y-1 pr-40">
+                  {legalFooterBlock}
+                  <div className="absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
+                    {doc.number}  ·  {pageIndex + 1}/{pageCount}
+                  </div>
+                </div>
               </div>
             ))}
 
@@ -1211,9 +1218,15 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           <div
             ref={pageFooterRef}
             data-pdf-page-footer
-            className="mt-auto pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400 space-y-1 bg-white"
+            className="mt-auto pt-4 border-t border-slate-200 bg-white"
           >
-            {legalFooterBlock}
+            <div className="relative text-center text-[10px] text-slate-400 space-y-1 pr-40">
+              {legalFooterBlock}
+              {/* Pagination aperçu (hors capture footer — le PDF la redessine par page) */}
+              <div className="no-print absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
+                {doc.number}  ·  {pageCount}/{pageCount}
+              </div>
+            </div>
           </div>
         </div>
         </div>
