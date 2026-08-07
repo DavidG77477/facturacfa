@@ -673,7 +673,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 maxWidth: `${options.stampPosition.width || 130}px`,
                 zIndex: 30,
                 touchAction: 'none',
-                overflow: 'hidden',
+                overflow: 'visible',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
                 activeDrag === 'stamp'
@@ -698,18 +698,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
-              <div className="no-print opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
+              <div
+                className={`no-print transition-opacity absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40 ${
+                  activeDrag === 'stamp'
+                    ? 'opacity-100'
+                    : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
+                }`}
+              >
                 <Move className="w-3 h-3 text-amber-400" />
                 <span>Cachet</span>
                 <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', -10); }}
                   className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Réduire taille"
                 >-</button>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', 10); }}
                   className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Agrandir taille"
@@ -733,7 +741,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 maxWidth: `${options.signaturePosition.width || 140}px`,
                 zIndex: 35,
                 touchAction: 'none',
-                overflow: 'hidden',
+                overflow: 'visible',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
                 activeDrag === 'signature'
@@ -758,18 +766,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
-              <div className="no-print opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40">
+              <div
+                className={`no-print transition-opacity absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40 ${
+                  activeDrag === 'signature'
+                    ? 'opacity-100'
+                    : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
+                }`}
+              >
                 <Move className="w-3 h-3 text-blue-400" />
                 <span>Signature</span>
                 <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', -10); }}
                   className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Réduire taille"
                 >-</button>
                 <button
                   type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', 10); }}
                   className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
                   title="Agrandir taille"
