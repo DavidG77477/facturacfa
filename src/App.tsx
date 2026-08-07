@@ -565,6 +565,7 @@ export default function App() {
             {activeTab === 'documents' && (
               <DocumentList
                 documents={documents}
+                userName={currentUser.name}
                 onNewDocument={(type) => {
                   setEditingDocument(null);
                   setNewDocumentType(type);

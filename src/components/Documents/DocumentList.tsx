@@ -6,6 +6,7 @@ import { computeFinancialMetrics } from '../../utils/analytics';
 import { getStatusInfo, ALL_STATUSES } from '../../utils/status';
 import { formatDateFR, toISODate } from '../../utils/date';
 import { FrenchDateInput } from '../ui/FrenchDateInput';
+import { BamakoWelcome } from '../Dashboard/BamakoWelcome';
 
 interface DocumentListProps {
   documents: InvoiceDocument[];
@@ -16,6 +17,7 @@ interface DocumentListProps {
   onConvertDevisToFacture: (doc: InvoiceDocument) => void;
   onUpdateStatus: (id: string, status: DocumentStatus) => void;
   onDeleteDocument: (id: string) => void;
+  userName?: string;
 }
 
 // Interactive Status Selector Component inside the table
@@ -128,6 +130,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onConvertDevisToFacture,
   onUpdateStatus,
   onDeleteDocument,
+  userName,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'devis' | 'facture'>('all');
@@ -258,12 +261,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-6">
+      <BamakoWelcome userName={userName} />
+
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires Réglé</span>
-            <div className="font-display text-2xl font-extrabold text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
+            <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Factures encaissées</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
@@ -274,7 +279,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">En Attente de Règlement</span>
-            <div className="font-display text-2xl font-extrabold text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
+            <div className="kpi-figure text-2xl text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Factures émises non payées</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
@@ -285,7 +290,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Encours Devis</span>
-            <div className="font-display text-2xl font-extrabold text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
+            <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
             <p className="text-[11px] text-slate-600 mt-0.5">Devis en attente & acceptés</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
