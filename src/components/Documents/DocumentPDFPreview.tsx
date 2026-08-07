@@ -29,10 +29,9 @@ import {
   Percent,
   Image as ImageIcon,
 } from 'lucide-react';
-import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions } from '../../types';
+import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions, isSectionItem } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
 import {
-  A4_HEIGHT_PX,
   downloadPDF,
   preparePdfVisualPreview,
   disposePdfVisualPreview,
@@ -61,9 +60,6 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   onUpdatePreviewOptions,
 }) => {
   const paperRef = React.useRef<HTMLDivElement>(null);
-  const pageFooterRef = React.useRef<HTMLDivElement>(null);
-  const [pageCount, setPageCount] = React.useState(1);
-  const [pageFooterHeight, setPageFooterHeight] = React.useState(56);
   const [copied, setCopied] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
   const [downloadSuccess, setDownloadSuccess] = React.useState(false);
@@ -246,22 +242,6 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     </>
   );
 
-  React.useEffect(() => {
-    const paper = paperRef.current;
-    if (!paper) return;
-
-    const measure = () => {
-      const footerH = pageFooterRef.current?.offsetHeight || 56;
-      setPageFooterHeight(footerH);
-      setPageCount(Math.max(1, Math.ceil(paper.scrollHeight / A4_HEIGHT_PX)));
-    };
-
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(paper);
-    return () => ro.disconnect();
-  }, [doc, options, profile.nif, profile.rccm, profile.legalFooter]);
-
   const openDownloadPlanner = async () => {
     if (isExporting || isCapturingPreview) return;
     setShowPageBreakModal(true);
@@ -366,7 +346,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       />
 
       {/* Top Action Toolbar */}
-      <div className="flex flex-col gap-3 bg-brand-ink text-brand-paper p-3 sm:p-4 rounded-2xl border border-brand-deep sticky top-14 sm:top-16 z-30">
+      <div className="flex flex-col gap-3 bg-brand-ink text-brand-paper p-3 sm:p-4 rounded-2xl border border-brand-deep sticky top-[4.5rem] sm:top-[5.25rem] z-30">
         <div className="flex flex-wrap items-center gap-2">
           <div className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
             isDevis ? 'bg-sky-600/90 text-white' : 'bg-brand-mid text-white'
@@ -380,7 +360,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           </span>
 
           {/* Status badge in preview toolbar */}
-          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${statusInfo.bgClass}`}>
+          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 ${statusInfo.pdfBgClass}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
             <span>{statusInfo.label}</span>
           </span>
@@ -405,10 +385,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           {isDevis && onConvertDevisToFacture && (
             <button
               onClick={onConvertDevisToFacture}
-              className="px-3.5 py-2.5 sm:py-2 bg-brand-mid hover:bg-brand-ink text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-2.5 sm:py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.35)]"
               title="Convertir ce devis en Facture"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-3.5 h-3.5 text-slate-950" />
               <span className="sm:hidden">→ Facture</span>
               <span className="hidden sm:inline">Convertir en Facture</span>
             </button>
@@ -455,20 +435,21 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           <button
             onClick={openDownloadPlanner}
             disabled={isExporting}
-            className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 text-brand-ink rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+            className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border shadow-[0_0_18px_rgba(45,212,191,0.4)] ${
               downloadSuccess
-                ? 'bg-brand-glow text-brand-ink'
-                : 'bg-brand-glow hover:bg-brand-sand text-brand-ink'
+                ? 'bg-emerald-300 border-emerald-200'
+                : 'bg-brand-glow hover:bg-teal-300 border-teal-200/80'
             }`}
+            style={{ color: '#042f2e' }}
           >
             {downloadSuccess ? (
               <>
-                <Check className="w-4 h-4 text-brand-ink" />
+                <Check className="w-4 h-4" style={{ color: '#042f2e' }} />
                 <span>PDF Téléchargé !</span>
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" />
+                <Download className="w-4 h-4" style={{ color: '#042f2e' }} />
                 <span className="sm:hidden">{isExporting ? 'Génération…' : 'PDF'}</span>
                 <span className="hidden sm:inline">{isExporting ? 'Génération…' : 'Préparer le PDF'}</span>
               </>
@@ -659,7 +640,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             >
               {options.showDimensions ? <CheckSquare className="w-4 h-4 text-slate-950 shrink-0" /> : <Square className="w-4 h-4 text-slate-400 shrink-0" />}
               <Ruler className="w-4 h-4 text-blue-700 shrink-0" />
-              <span className="text-left leading-tight">Colonnes Hauteur / Largeur</span>
+              <span className="text-left leading-tight">Colonnes Largeur / Hauteur</span>
             </button>
 
             {/* Colonne Remise */}
@@ -1008,8 +989,8 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     <th className="py-3 px-4">Désignation / Article</th>
                     {hasDimensions && (
                       <>
-                        <th className="py-3 px-2 text-center w-24">Hauteur (mm)</th>
                         <th className="py-3 px-2 text-center w-24">Largeur (mm)</th>
+                        <th className="py-3 px-2 text-center w-24">Hauteur (mm)</th>
                       </>
                     )}
                     <th className="py-3 px-2 text-center w-14">Qté</th>
@@ -1019,38 +1000,61 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/70">
-                  {doc.items.map((item, idx) => {
-                    const gross = item.quantity * item.unitPrice;
-                    const discountAmt = gross * ((item.discount || 0) / 100);
-                    const netHT = gross - discountAmt;
+                  {(() => {
+                    const pdfColSpan =
+                      2 + // N° + désignation
+                      (hasDimensions ? 2 : 0) +
+                      2 + // Qté + P.U.
+                      (hasDiscount ? 1 : 0) +
+                      1; // Total
+                    let lineNo = 0;
+                    return doc.items.map((item, idx) => {
+                      if (isSectionItem(item)) {
+                        return (
+                          <tr key={item.id || `section-${idx}`} className="bg-slate-100">
+                            <td
+                              colSpan={pdfColSpan}
+                              className="py-2.5 px-4 text-[11px] font-black uppercase tracking-wide text-slate-800 border-y border-slate-300"
+                            >
+                              {item.description?.trim() || '—'}
+                            </td>
+                          </tr>
+                        );
+                      }
 
-                    return (
-                      <tr key={item.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
-                        <td className="py-3 px-2 text-center text-slate-500 font-mono text-[11px] font-bold tabular-nums">
-                          {idx + 1}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-900 text-xs">{item.description}</div>
-                        </td>
-                        {hasDimensions && (
-                          <>
-                            <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
-                              {item.length ? String(item.length) : '-'}
-                            </td>
-                            <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
-                              {item.width ? String(item.width) : '-'}
-                            </td>
-                          </>
-                        )}
-                        <td className="py-3 px-2 text-center text-slate-900 font-bold text-xs">{item.quantity}</td>
-                        <td className="py-3 px-3 text-right text-slate-800 font-mono text-xs font-semibold">{formatFCFA(item.unitPrice, '')}</td>
-                        {hasDiscount && (
-                          <td className="py-3 px-2 text-center text-slate-500 font-mono text-xs">{item.discount ? `${item.discount}%` : '-'}</td>
-                        )}
-                        <td className="py-3 px-4 text-right font-mono font-black text-slate-900 text-xs">{formatFCFA(netHT, '')}</td>
-                      </tr>
-                    );
-                  })}
+                      lineNo += 1;
+                      const gross = item.quantity * item.unitPrice;
+                      const discountAmt = gross * ((item.discount || 0) / 100);
+                      const netHT = gross - discountAmt;
+
+                      return (
+                        <tr key={item.id || idx} className={lineNo % 2 === 0 ? 'bg-slate-50/40' : 'bg-white'}>
+                          <td className="py-3 px-2 text-center text-slate-500 font-mono text-[11px] font-bold tabular-nums">
+                            {lineNo}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-semibold text-slate-900 text-xs">{item.description}</div>
+                          </td>
+                          {hasDimensions && (
+                            <>
+                              <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
+                                {item.width ? String(item.width) : '-'}
+                              </td>
+                              <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
+                                {item.length ? String(item.length) : '-'}
+                              </td>
+                            </>
+                          )}
+                          <td className="py-3 px-2 text-center text-slate-900 font-bold text-xs">{item.quantity}</td>
+                          <td className="py-3 px-3 text-right text-slate-800 font-mono text-xs font-semibold">{formatFCFA(item.unitPrice, '')}</td>
+                          {hasDiscount && (
+                            <td className="py-3 px-2 text-center text-slate-500 font-mono text-xs">{item.discount ? `${item.discount}%` : '-'}</td>
+                          )}
+                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 text-xs">{formatFCFA(netHT, '')}</td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -1192,39 +1196,25 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             </div>
           )}
 
-          {/* Aperçu multi-pages : pied légal + n° doc / pagination en bas de chaque page A4 */}
-          {pageCount > 1 &&
-            Array.from({ length: pageCount - 1 }, (_, pageIndex) => (
-              <div
-                key={`page-footer-preview-${pageIndex}`}
-                className="no-print absolute left-0 right-0 z-20 pointer-events-none bg-white pt-3 border-t border-slate-200 px-0"
-                style={{
-                  top: `${(pageIndex + 1) * A4_HEIGHT_PX - pageFooterHeight}px`,
-                  minHeight: pageFooterHeight,
-                }}
-                aria-hidden
-              >
-                <div className="relative text-center text-[10px] text-slate-500 space-y-1 px-36">
-                  {legalFooterBlock}
-                  <div className="absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
-                    {doc.number}  ·  {pageIndex + 1}/{pageCount}
-                  </div>
-                </div>
-              </div>
-            ))}
-
-          {/* Pied de page légal — capturé puis répété sur chaque page du PDF */}
+          {/*
+            Pied légal : masqué dans l’aperçu (hors écran), révélé uniquement
+            pendant la capture « Préparer PDF » / export (voir pdfGenerator).
+          */}
           <div
-            ref={pageFooterRef}
             data-pdf-page-footer
-            className="mt-auto pt-4 border-t border-slate-200 bg-white"
+            className="pt-4 border-t border-slate-200 bg-white"
+            style={{
+              position: 'absolute',
+              left: '-10000px',
+              top: 0,
+              width: '714px',
+              visibility: 'hidden',
+              pointerEvents: 'none',
+            }}
+            aria-hidden
           >
             <div className="relative text-center text-[10px] text-slate-500 space-y-1 px-36">
               {legalFooterBlock}
-              {/* Pagination aperçu (hors capture footer — le PDF la redessine par page) */}
-              <div className="no-print absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
-                {doc.number}  ·  {pageCount}/{pageCount}
-              </div>
             </div>
           </div>
         </div>

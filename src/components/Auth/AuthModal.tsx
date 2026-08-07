@@ -3,7 +3,6 @@ import { Lock, Mail, User as UserIcon, Shield, Building, KeyRound, CheckCircle2,
 import { User } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { signIn, signUp } from '../../services/database';
-import { ThemeToggle } from '../Common/ThemeToggle';
 
 interface AuthModalProps {
   currentUser: User | null;
@@ -108,7 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         : 'Générez des factures en Francs CFA (XOF/XAF) en 1 clic';
 
   const inputClass =
-    'w-full pl-11 pr-4 py-3 bg-white/80 border border-[#0a3d3a]/12 rounded-2xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#147a72]/35 focus:border-[#147a72]/40 text-sm transition-shadow';
+    'w-full pl-11 pr-4 py-3 glass-input rounded-2xl text-slate-100 placeholder:text-slate-500 focus:outline-none text-sm transition-shadow';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto font-sans bg-transparent">
@@ -173,11 +172,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Auth form panel */}
         <section className="relative flex items-center justify-center px-5 sm:px-8 py-10 lg:py-16 bg-transparent">
-          <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
-            <ThemeToggle
-              className="!border-brand-ink/15 !text-brand-ink dark:!border-white/15 dark:!text-brand-sand hover:!bg-brand-mist dark:hover:!bg-white/10"
-            />
-          </div>
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-60"
@@ -187,12 +181,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }}
           />
 
-          <div className="relative w-full max-w-[420px] auth-panel-in rounded-3xl bg-white/75 dark:bg-[#13201e]/80 backdrop-blur-md border border-white/50 dark:border-white/10 p-6 sm:p-8 shadow-sm">
+          <div className="relative w-full max-w-[420px] auth-panel-in rounded-3xl bg-white/75 backdrop-blur-md border border-white/50 p-6 sm:p-8 shadow-sm">
             <div className="mb-8">
-              <h2 className="font-display text-2xl sm:text-3xl font-bold text-[var(--color-brand-ink)] dark:text-brand-sand tracking-tight">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-brand-sand tracking-tight">
                 {title}
               </h2>
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">{subtitle}</p>
+              <p className="text-sm text-slate-400 mt-2 leading-relaxed">{subtitle}</p>
             </div>
 
             {error && (
@@ -213,7 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {mode === 'signup' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                       Nom du Responsable
                     </label>
                     <div className="relative">
@@ -230,7 +224,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                       Nom de l'Entreprise / Société
                     </label>
                     <div className="relative">
@@ -250,7 +244,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               {mode !== 'unlock' && (
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                     Adresse Email Professionnelle
                   </label>
                   <div className="relative">
@@ -268,7 +262,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                   Mot de passe / Code d'accès
                 </label>
                 <div className="relative">
@@ -313,7 +307,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setMode('signup')}
-                    className="text-[var(--color-brand-mid)] hover:text-[var(--color-brand-ink)] font-semibold cursor-pointer transition-colors"
+                    className="text-brand-glow hover:text-brand-sand font-semibold cursor-pointer transition-colors"
                   >
                     Créer un compte
                   </button>
@@ -324,7 +318,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setMode('login')}
-                    className="text-[var(--color-brand-mid)] hover:text-[var(--color-brand-ink)] font-semibold cursor-pointer transition-colors"
+                    className="text-brand-glow hover:text-brand-sand font-semibold cursor-pointer transition-colors"
                   >
                     Se connecter
                   </button>

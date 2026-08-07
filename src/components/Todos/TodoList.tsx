@@ -43,9 +43,12 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-card p-5">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <ListTodo className="w-6 h-6 text-brand-mid" />
-            <span className="font-display">Todolist ({stats.total})</span>
+          <p className="page-kicker mb-1.5">
+            <ListTodo className="w-3 h-3" />
+            Organisation
+          </p>
+          <h2 className="text-xl font-extrabold text-slate-900 font-display tracking-tight">
+            Todolist ({stats.total})
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             {stats.open} à faire · {stats.done} terminée{stats.done > 1 ? 's' : ''}
@@ -62,20 +65,20 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Ajouter une tâche… (ex. Relancer client Diallo)"
-          className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/80 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-mid focus:border-transparent"
+          className="glass-input flex-1 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400"
           maxLength={200}
         />
         <button
           type="submit"
           disabled={!draft.trim() || saving}
-          className="hover-press px-4 py-3 bg-brand-ink hover:bg-brand-deep disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-sm flex items-center justify-center gap-2 text-sm cursor-pointer"
+          className="hover-press app-btn-primary px-4 py-3 disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center gap-2 text-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Ajouter
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="glass-segment">
         {(
           [
             { id: 'all', label: 'Toutes' },
@@ -87,11 +90,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onAdd, onToggle, onDe
             key={chip.id}
             type="button"
             onClick={() => setFilter(chip.id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-              filter === chip.id
-                ? 'bg-brand-ink text-white'
-                : 'bg-white/45 backdrop-blur-sm text-slate-600 border border-white/50 hover:bg-white/70'
-            }`}
+            className={`glass-segment-btn ${filter === chip.id ? 'is-active' : ''}`}
           >
             {chip.label}
           </button>

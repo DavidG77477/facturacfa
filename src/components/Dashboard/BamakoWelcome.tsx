@@ -147,7 +147,7 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
   return (
     <section
       data-bamako-welcome
-      className="hover-glow relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-brand-ink/10 shadow-sm"
+      className="hover-glow relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-white/20 shadow-[0_18px_40px_rgba(6,46,44,0.18)]"
     >
       {BAMAKO_SLIDES.map((src, i) => (
         <img
@@ -180,7 +180,7 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
             {greeting}
             {firstName ? `, ${firstName}` : ''}
           </h2>
-          <p className="text-sm text-brand-sand/80 capitalize">{day}</p>
+          <p className="text-sm text-brand-sand capitalize">{day}</p>
         </div>
 
         <div className="flex flex-wrap items-stretch gap-3 sm:gap-4">

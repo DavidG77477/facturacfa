@@ -27,26 +27,44 @@ async function capturePageFooterCanvas(
 ): Promise<HTMLCanvasElement | null> {
   const footer = element.querySelector(PAGE_FOOTER_SELECTOR);
   if (!(footer instanceof HTMLElement)) return null;
-  const rect = footer.getBoundingClientRect();
-  if (rect.height < 4 || rect.width < 4) return null;
 
-  const canvas = await html2canvas(footer, {
-    scale,
-    useCORS: true,
-    allowTaint: false,
-    logging: false,
-    backgroundColor: '#ffffff',
-    imageTimeout: 15000,
-    foreignObjectRendering: false,
-    removeContainer: true,
-    onclone: (clonedDoc) => {
-      clonedDoc.querySelectorAll('.no-print').forEach((el) => {
-        if (el instanceof HTMLElement) el.style.display = 'none';
-      });
-    },
-  });
+  // L’aperçu masque le pied (visibility/hors écran) : rendu capturable sans l’afficher à l’écran
+  const prevVisibility = footer.style.visibility;
+  const prevOpacity = footer.style.opacity;
+  footer.style.visibility = 'visible';
+  footer.style.opacity = '1';
 
-  return canvas.width && canvas.height ? canvas : null;
+  try {
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const rect = footer.getBoundingClientRect();
+    if (rect.height < 4 || rect.width < 4) return null;
+
+    const canvas = await html2canvas(footer, {
+      scale,
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      backgroundColor: '#ffffff',
+      imageTimeout: 15000,
+      foreignObjectRendering: false,
+      removeContainer: true,
+      onclone: (clonedDoc) => {
+        clonedDoc.querySelectorAll('.no-print').forEach((el) => {
+          if (el instanceof HTMLElement) el.style.display = 'none';
+        });
+        clonedDoc.querySelectorAll(PAGE_FOOTER_SELECTOR).forEach((el) => {
+          if (!(el instanceof HTMLElement)) return;
+          el.style.visibility = 'visible';
+          el.style.opacity = '1';
+        });
+      },
+    });
+
+    return canvas.width && canvas.height ? canvas : null;
+  } finally {
+    footer.style.visibility = prevVisibility;
+    footer.style.opacity = prevOpacity;
+  }
 }
 
 function footerHeightForPageWidth(footer: HTMLCanvasElement, pageWidthPx: number): number {

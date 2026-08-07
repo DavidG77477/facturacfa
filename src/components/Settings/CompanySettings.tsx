@@ -142,12 +142,15 @@ export const CompanySettings: React.FC<CompanySettingsProps> = ({
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="glass-card p-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Building className="w-6 h-6 text-brand-mid" />
-            <span>Profil de votre Entreprise</span>
+          <p className="page-kicker mb-1.5">
+            <Building className="w-3 h-3" />
+            Identité
+          </p>
+          <h2 className="text-xl font-extrabold text-slate-900 font-display tracking-tight">
+            Profil entreprise
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Logo, cachet et signature sont stockés dans Supabase Storage. Le profil est enregistré en base.
+            Logo, cachet et signature · stockés sur Supabase
           </p>
         </div>
 

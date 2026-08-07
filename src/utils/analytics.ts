@@ -145,6 +145,63 @@ export interface MonthlyPoint {
  * Les sommes `paye` et `factured` correspondent exactement aux KPI
  * (les documents sans date sont affectés au mois courant).
  */
+export interface RevenueBreakdown {
+  /** CA = somme TTC des documents au statut « payee » */
+  totalCA: number;
+  countPaid: number;
+  averageTicket: number;
+  paidDocuments: InvoiceDocument[];
+  byMonth: { month: string; yearMonth: string; ca: number; count: number }[];
+}
+
+/**
+ * Chiffre d'affaires : uniquement les documents en statut « Payé ».
+ * (Factures payées — les devis exclus même s’ils avaient ce statut.)
+ */
+export function computeRevenue(documents: InvoiceDocument[]): RevenueBreakdown {
+  const paid = documents.filter(
+    (d) => d.type === 'facture' && d.status === 'payee' && !isExcludedFromFinancials(d.status)
+  );
+
+  let totalCA = 0;
+  const monthNames = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+  const map = new Map<string, { yearMonth: string; month: string; ca: number; count: number }>();
+  const now = new Date();
+  const fallbackKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  for (const doc of paid) {
+    const ttc = getDocumentTotals(doc).totalTTC;
+    totalCA += ttc;
+    const d = parseDocumentDate(doc.date);
+    const key = d
+      ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      : fallbackKey;
+    if (!map.has(key)) {
+      const [y, m] = key.split('-').map(Number);
+      map.set(key, {
+        yearMonth: key,
+        month: `${monthNames[m - 1]} ${String(y).slice(2)}`,
+        ca: 0,
+        count: 0,
+      });
+    }
+    const entry = map.get(key)!;
+    entry.ca += ttc;
+    entry.count += 1;
+  }
+
+  const byMonth = Array.from(map.values()).sort((a, b) => a.yearMonth.localeCompare(b.yearMonth));
+  const countPaid = paid.length;
+
+  return {
+    totalCA,
+    countPaid,
+    averageTicket: countPaid > 0 ? Math.round(totalCA / countPaid) : 0,
+    paidDocuments: [...paid].sort((a, b) => (b.date || '').localeCompare(a.date || '')),
+    byMonth,
+  };
+}
+
 export function computeMonthlySeries(documents: InvoiceDocument[]): MonthlyPoint[] {
   const monthNames = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
   const map = new Map<string, MonthlyPoint>();

@@ -85,7 +85,7 @@ export interface DocumentPreviewOptions {
   stampPosition?: ElementPosition; // Coordonnées du cachet (X, Y %)
   signaturePosition?: ElementPosition; // Coordonnées de la signature (X, Y %)
   logoWidth?: number;              // Largeur du logo en px (redimensionnable sur l'aperçu)
-  showDimensions?: boolean;        // Afficher/masquer les colonnes Hauteur et Largeur
+  showDimensions?: boolean;        // Afficher/masquer les colonnes Largeur et Hauteur
   showDiscount?: boolean;          // Afficher/masquer la colonne Remise
   /** IDs des modules après lesquels forcer une nouvelle page PDF */
   pageBreakAfterModules?: string[];

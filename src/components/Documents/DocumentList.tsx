@@ -88,8 +88,8 @@ const StatusSelector: React.FC<{
         <select
           value={ALL_STATUSES[currentStatus] ? currentStatus : '__CUSTOM_DISPLAY__'}
           onChange={handleSelectChange}
-          className="bg-transparent font-bold cursor-pointer focus:outline-none appearance-none pr-3 text-xs"
-          style={{ backgroundImage: 'none' }}
+          className="bg-transparent font-bold cursor-pointer focus:outline-none appearance-none pr-3 text-xs text-inherit"
+          style={{ backgroundImage: 'none', color: 'inherit' }}
           title="Cliquer pour changer le statut"
         >
           {!ALL_STATUSES[currentStatus] && (
@@ -206,58 +206,17 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   // Mêmes règles que le dashboard Stats (source unique)
   const metrics = computeFinancialMetrics(documents);
 
-  const getStatusBadge = (status: DocumentStatus, type: DocumentType) => {
-    switch (status) {
-      case 'payee':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-mist text-brand-ink border border-brand-mid/25 rounded-lg text-xs font-semibold">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Payée</span>
-          </span>
-        );
-      case 'en_attente':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold">
-            <Clock className="w-3.5 h-3.5" />
-            <span>En attente</span>
-          </span>
-        );
-      case 'en_retard':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>En retard</span>
-          </span>
-        );
-      case 'accepte':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-mist text-brand-ink border border-brand-mid/25 rounded-lg text-xs font-semibold">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Accepté</span>
-          </span>
-        );
-      case 'refuse':
-      case 'annulee':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-semibold">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>{status === 'refuse' ? 'Refusé' : 'Annulée'}</span>
-          </span>
-        );
-      case 'converti':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold">
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Converti en Facture</span>
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">
-            <span>{status}</span>
-          </span>
-        );
-    }
+  const getStatusBadge = (status: DocumentStatus, _type: DocumentType) => {
+    const info = getStatusInfo(status);
+    const Icon = info.icon;
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${info.bgClass}`}
+      >
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        <span>{info.label}</span>
+      </span>
+    );
   };
 
   return (
@@ -268,74 +227,69 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card kpi-card p-5 pl-6 flex items-center justify-between cursor-default">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Chiffre d'Affaires Réglé</span>
-            <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalPaid)}</div>
-            <p className="text-[11px] text-slate-600 mt-0.5">Factures encaissées</p>
+            <span className="page-kicker">Encaissé</span>
+            <div className="kpi-figure text-2xl text-brand-sand mt-1.5">{formatFCFA(metrics.totalPaid)}</div>
+            <p className="text-[11px] text-slate-500 mt-1">Factures réglées</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold transition-transform duration-300 group-hover:scale-110">
-            <DollarSign className="w-6 h-6" />
+          <div className="icon-well">
+            <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card kpi-card kpi-card-amber p-5 pl-6 flex items-center justify-between cursor-default">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">En Attente de Règlement</span>
-            <div className="kpi-figure text-2xl text-amber-600 mt-1">{formatFCFA(metrics.totalPending)}</div>
-            <p className="text-[11px] text-slate-600 mt-0.5">Factures émises non payées</p>
+            <span className="page-kicker !text-amber-300">À encaisser</span>
+            <div className="kpi-figure text-2xl text-amber-300 mt-1.5">{formatFCFA(metrics.totalPending)}</div>
+            <p className="text-[11px] text-slate-500 mt-1">Factures en attente</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <Clock className="w-6 h-6" />
+          <div className="icon-well icon-well-amber">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="hover-lift glass-card p-5 flex items-center justify-between cursor-default">
+        <div className="hover-lift glass-card kpi-card p-5 pl-6 flex items-center justify-between cursor-default">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">Encours Devis</span>
-            <div className="kpi-figure text-2xl text-brand-ink mt-1">{formatFCFA(metrics.totalDevisPipeline)}</div>
-            <p className="text-[11px] text-slate-600 mt-0.5">Devis en attente & acceptés</p>
+            <span className="page-kicker">Devis en cours</span>
+            <div className="kpi-figure text-2xl text-brand-sand mt-1.5">{formatFCFA(metrics.totalDevisPipeline)}</div>
+            <p className="text-[11px] text-slate-500 mt-1">En attente & acceptés</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-brand-mist text-brand-mid flex items-center justify-center font-bold">
-            <FileText className="w-6 h-6" />
+          <div className="icon-well">
+            <FileText className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Main Filter & Search Section */}
       <div className="glass-card p-5 space-y-4">
-        {/* Top bar: Type Filter Tabs, Status Filter & Action Buttons */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            <div className="glass-segment">
               <button
+                type="button"
                 onClick={() => setDocTypeFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  docTypeFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`glass-segment-btn ${docTypeFilter === 'all' ? 'is-active' : ''}`}
               >
                 Tous ({documents.length})
               </button>
               <button
+                type="button"
                 onClick={() => setDocTypeFilter('facture')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  docTypeFilter === 'facture' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`glass-segment-btn ${docTypeFilter === 'facture' ? 'is-active' : ''}`}
               >
                 Factures ({documents.filter((d) => d.type === 'facture').length})
               </button>
               <button
+                type="button"
                 onClick={() => setDocTypeFilter('devis')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  docTypeFilter === 'devis' ? 'bg-brand-ink text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`glass-segment-btn ${docTypeFilter === 'devis' ? 'is-active' : ''}`}
               >
                 Devis ({documents.filter((d) => d.type === 'devis').length})
               </button>
             </div>
 
-            {/* Status Filter Dropdown */}
-            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-1.5 glass-input px-3 py-1.5">
               <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <select
                 value={statusFilter}
@@ -362,16 +316,18 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
           <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full lg:w-auto">
             <button
+              type="button"
               onClick={() => onNewDocument('devis')}
-              className="hover-press px-3.5 py-2.5 sm:py-2 bg-brand-mist hover:bg-brand-mist text-brand-ink font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="hover-press app-btn-secondary px-3.5 py-2.5 sm:py-2 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouveau Devis</span>
             </button>
 
             <button
+              type="button"
               onClick={() => onNewDocument('facture')}
-              className="hover-press px-4 py-2.5 sm:py-2 bg-brand-ink hover:bg-brand-deep text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              className="hover-press app-btn-primary px-4 py-2.5 sm:py-2 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouvelle Facture</span>
@@ -379,27 +335,24 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </div>
         </div>
 
-        {/* Date Search & Preset Bar */}
-        <div className="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-3">
-          {/* Keyword Search */}
+        <div className="pt-3 border-t border-white/40 grid grid-cols-1 md:grid-cols-12 gap-3">
           <div className="md:col-span-5 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 z-10" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Rechercher par N°, nom client ou désignation..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
+              className="glass-input w-full pl-9 pr-3 py-2.5 text-slate-800 text-xs"
             />
           </div>
 
-          {/* Date Range Selector */}
           <div className="md:col-span-4 flex items-center gap-2">
             <div className="relative flex-1">
               <FrenchDateInput
                 value={dateFilter.startDate}
                 onChange={(startDate) => setDateFilter((prev) => ({ ...prev, startDate, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                className="glass-input w-full px-2.5 py-2.5 pr-9 text-slate-800 text-xs"
                 title="Date début (JJ/MM/AAAA)"
               />
             </div>
@@ -408,38 +361,36 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               <FrenchDateInput
                 value={dateFilter.endDate}
                 onChange={(endDate) => setDateFilter((prev) => ({ ...prev, endDate, preset: 'custom' }))}
-                className="w-full px-2.5 py-2 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                className="glass-input w-full px-2.5 py-2.5 pr-9 text-slate-800 text-xs"
                 title="Date fin (JJ/MM/AAAA)"
               />
             </div>
           </div>
 
-          {/* Date Presets */}
-          <div className="md:col-span-3 flex items-center justify-end gap-1">
-            <button
-              onClick={() => handlePresetDate('all')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'all' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Tout
-            </button>
-            <button
-              onClick={() => handlePresetDate('this_month')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'this_month' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Ce mois
-            </button>
-            <button
-              onClick={() => handlePresetDate('this_year')}
-              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
-                dateFilter.preset === 'this_year' ? 'bg-brand-deep text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              Cette année
-            </button>
+          <div className="md:col-span-3 flex items-center justify-end">
+            <div className="glass-segment">
+              <button
+                type="button"
+                onClick={() => handlePresetDate('all')}
+                className={`glass-segment-btn !px-2.5 !py-1.5 !text-[11px] ${dateFilter.preset === 'all' ? 'is-active' : ''}`}
+              >
+                Tout
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePresetDate('this_month')}
+                className={`glass-segment-btn !px-2.5 !py-1.5 !text-[11px] ${dateFilter.preset === 'this_month' ? 'is-active' : ''}`}
+              >
+                Ce mois
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePresetDate('this_year')}
+                className={`glass-segment-btn !px-2.5 !py-1.5 !text-[11px] ${dateFilter.preset === 'this_year' ? 'is-active' : ''}`}
+              >
+                Cette année
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -466,23 +417,68 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
-                          isDevis ? 'bg-sky-100 text-sky-800' : 'bg-brand-mist text-brand-ink'
-                        }`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
+                            isDevis
+                              ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                              : 'bg-brand-glow/15 text-brand-glow border-brand-glow/30'
+                          }`}
+                        >
                           {isDevis ? 'DEVIS' : 'FAC'}
                         </span>
-                        <span className="font-mono font-bold text-slate-900 text-xs">{doc.number}</span>
+                        <span className="font-mono font-bold text-brand-sand text-xs">{doc.number}</span>
                       </div>
-                      <div className="mt-1 font-semibold text-slate-900 text-sm truncate">
+                      <div className="mt-1 font-semibold text-brand-sand text-sm truncate">
                         {doc.clientInfo.companyName || doc.clientInfo.name}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
+                      <div className="text-[11px] text-slate-300 mt-0.5">
                         {formatDateFR(doc.date)}
                         {doc.dueDate ? ` · Éch. ${formatDateFR(doc.dueDate)}` : ''}
                       </div>
+                      {isDevis ? (
+                        (() => {
+                          const attachedFactureNum = doc.convertedFactureNumber || documents.find(d => d.type === 'facture' && (d.sourceDevisId === doc.id || (d.sourceDevisNumber && d.sourceDevisNumber === doc.number)))?.number;
+                          if (!attachedFactureNum) return null;
+                          const attachedFactureDoc = documents.find(d => d.type === 'facture' && d.number === attachedFactureNum);
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => attachedFactureDoc && onViewDocument(attachedFactureDoc)}
+                              className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-sky-100 bg-sky-500/20 hover:bg-sky-500/30 px-2 py-0.5 rounded-md border border-sky-400/40 w-fit transition-all cursor-pointer group"
+                              title="Cliquer pour voir la facture rattachée"
+                            >
+                              <span className="text-[9px] text-sky-200 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-sky-200" />
+                                Facture :
+                              </span>
+                              <span className="font-mono font-bold text-sky-100 group-hover:underline">{attachedFactureNum}</span>
+                            </button>
+                          );
+                        })()
+                      ) : (
+                        (() => {
+                          const refDevis = doc.sourceDevisNumber || (doc.notes?.match(/devis\s*(?:n[°o]?\s*)?([A-Za-z0-9_-]+)/i)?.[1]);
+                          if (!refDevis) return null;
+                          const attachedDevisDoc = documents.find(d => d.type === 'devis' && (d.id === doc.sourceDevisId || d.number === refDevis));
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => attachedDevisDoc && onViewDocument(attachedDevisDoc)}
+                              className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-violet-100 bg-violet-500/20 hover:bg-violet-500/30 px-2 py-0.5 rounded-md border border-violet-400/40 w-fit transition-all cursor-pointer group"
+                              title="Cliquer pour voir le devis d'origine"
+                            >
+                              <span className="text-[9px] text-violet-200 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <FileText className="w-2.5 h-2.5 text-violet-200" />
+                                Devis d'origine :
+                              </span>
+                              <span className="font-mono font-bold text-violet-100 group-hover:underline">{refDevis}</span>
+                            </button>
+                          );
+                        })()
+                      )}
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-mono font-black text-slate-900 text-sm">
+                      <div className="kpi-figure font-mono font-black text-brand-sand text-sm">
                         {formatFCFA(totals.totalTTC, doc.currency)}
                       </div>
                     </div>
@@ -494,7 +490,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <button
                       type="button"
                       onClick={() => onViewDocument(doc)}
-                      className="py-2.5 px-3 bg-brand-ink text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 app-btn-primary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       Aperçu
@@ -502,7 +498,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <button
                       type="button"
                       onClick={() => onEditDocument(doc)}
-                      className="py-2.5 px-3 bg-slate-100 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 app-btn-secondary text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                       Modifier
@@ -511,7 +507,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                       <button
                         type="button"
                         onClick={() => onConvertDevisToFacture(doc)}
-                        className="py-2.5 px-3 bg-purple-50 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer col-span-2"
+                        className="py-2.5 px-3 bg-fuchsia-500/20 text-fuchsia-100 border border-fuchsia-400/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer col-span-2"
                       >
                         <RefreshCw className="w-4 h-4" />
                         Convertir en facture
@@ -520,7 +516,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <button
                       type="button"
                       onClick={() => onDuplicateDocument(doc)}
-                      className="py-2.5 px-3 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 bg-white/8 text-brand-sand border border-white/15 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Copy className="w-4 h-4" />
                       Dupliquer
@@ -528,7 +524,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                     <button
                       type="button"
                       onClick={() => setDocumentToDelete(doc)}
-                      className="py-2.5 px-3 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="py-2.5 px-3 bg-rose-500/20 text-rose-100 border border-rose-400/40 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                       Supprimer
@@ -563,13 +559,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
-                              isDevis ? 'bg-brand-mist text-brand-ink' : 'bg-brand-mist text-brand-ink'
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase border ${
+                              isDevis
+                                ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                                : 'bg-brand-glow/15 text-brand-glow border-brand-glow/30'
                             }`}
                           >
                             {isDevis ? 'DEVIS' : 'FAC'}
                           </span>
-                          <span className="font-mono font-bold text-slate-900 text-xs">{doc.number}</span>
+                          <span className="font-mono font-bold text-brand-sand text-xs">{doc.number}</span>
                         </div>
                         {/* Source devis or Converted Facture reference badge */}
                         {isDevis ? (
@@ -586,14 +584,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                     onViewDocument(attachedFactureDoc);
                                   }
                                 }}
-                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-brand-ink bg-brand-mist hover:bg-brand-mist px-2 py-0.5 rounded-md border border-brand-mid/25/80 w-fit transition-all cursor-pointer group shadow-2xs"
+                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-sky-100 bg-sky-500/20 hover:bg-sky-500/30 px-2 py-0.5 rounded-md border border-sky-400/40 w-fit transition-all cursor-pointer group"
                                 title="Cliquer pour voir la facture rattachée"
                               >
-                                <span className="text-[9px] text-brand-mid font-bold uppercase tracking-wider flex items-center gap-1">
-                                  <CheckCircle2 className="w-2.5 h-2.5 text-brand-mid" />
+                                <span className="text-[9px] text-sky-200 font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <CheckCircle2 className="w-2.5 h-2.5 text-sky-200" />
                                   Facture :
                                 </span>
-                                <span className="font-mono font-bold text-blue-950 group-hover:underline">{attachedFactureNum}</span>
+                                <span className="font-mono font-bold text-sky-100 group-hover:underline">{attachedFactureNum}</span>
                               </button>
                             );
                           })()
@@ -611,14 +609,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                     onViewDocument(attachedDevisDoc);
                                   }
                                 }}
-                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded-md border border-purple-200/80 w-fit transition-all cursor-pointer group shadow-2xs"
+                                className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-violet-100 bg-violet-500/20 hover:bg-violet-500/30 px-2 py-0.5 rounded-md border border-violet-400/40 w-fit transition-all cursor-pointer group"
                                 title="Cliquer pour voir le devis d'origine"
                               >
-                                <span className="text-[9px] text-purple-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                                  <FileText className="w-2.5 h-2.5 text-purple-600" />
+                                <span className="text-[9px] text-violet-200 font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <FileText className="w-2.5 h-2.5 text-violet-200" />
                                   Devis d'origine :
                                 </span>
-                                <span className="font-mono font-bold text-purple-950 group-hover:underline">{refDevis}</span>
+                                <span className="font-mono font-bold text-violet-100 group-hover:underline">{refDevis}</span>
                               </button>
                             );
                           })()
@@ -626,17 +624,17 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                       </td>
 
                       {/* Client Name */}
-                      <td className="py-3.5 px-4 font-medium text-slate-800">
-                        <div className="font-semibold text-slate-900">{doc.clientInfo.companyName || doc.clientInfo.name}</div>
+                      <td className="py-3.5 px-4 font-medium text-slate-200">
+                        <div className="font-semibold text-brand-sand">{doc.clientInfo.companyName || doc.clientInfo.name}</div>
                         {doc.clientInfo.companyName && (
-                          <div className="text-[11px] text-slate-600">{doc.clientInfo.name}</div>
+                          <div className="text-[11px] text-slate-300">{doc.clientInfo.name}</div>
                         )}
                       </td>
 
                       {/* Dates */}
-                      <td className="py-3.5 px-4 text-slate-600">
+                      <td className="py-3.5 px-4 text-slate-300">
                         <div>{formatDateFR(doc.date)}</div>
-                        <div className="text-[10px] text-slate-600">Éch : {formatDateFR(doc.dueDate)}</div>
+                        <div className="text-[10px] text-slate-400">Éch : {formatDateFR(doc.dueDate)}</div>
                       </td>
 
                       {/* Status */}
@@ -645,7 +643,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                       </td>
 
                       {/* Amount */}
-                      <td className="py-3.5 px-4 text-right font-mono font-bold text-slate-900 text-sm">
+                      <td className="py-3.5 px-4 text-right kpi-figure font-mono font-bold text-brand-sand text-sm">
                         {formatFCFA(totals.totalTTC, doc.currency)}
                       </td>
 
@@ -675,9 +673,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             <button
                               onClick={() => onConvertDevisToFacture(doc)}
                               title="Convertir ce devis en Facture"
-                              className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-900 border border-purple-200/80 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                              className="px-2 py-1 bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-100 border border-fuchsia-400/40 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1"
                             >
-                              <RefreshCw className="w-3.5 h-3.5 text-purple-600" />
+                              <RefreshCw className="w-3.5 h-3.5 text-fuchsia-200" />
                               <span className="hidden md:inline">En Facture</span>
                             </button>
                           )}

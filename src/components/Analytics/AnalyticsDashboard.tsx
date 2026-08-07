@@ -24,6 +24,7 @@ import { getStatusInfo } from '../../utils/status';
 import {
   computeFinancialMetrics,
   computeMonthlySeries,
+  computeRevenue,
   getDocumentTotals,
   isExcludedFromFinancials,
   parseDocumentDate,
@@ -62,42 +63,65 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const [customRange, setCustomRange] = useState<DateRange>({ startDate: '', endDate: '' });
   const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'facture' | 'devis'>('all');
 
-  const filteredDocuments = useMemo(() => {
+  /** Filtre période dédié à la section Chiffre d'affaires */
+  const [caPeriod, setCaPeriod] = useState<string>('this_year');
+  const [caCustomRange, setCaCustomRange] = useState<DateRange>({ startDate: '', endDate: '' });
+
+  const matchesPeriod = (
+    doc: InvoiceDocument,
+    preset: string,
+    range: DateRange
+  ): boolean => {
+    if (preset === 'custom') {
+      if (range.startDate && (!doc.date || doc.date < range.startDate)) return false;
+      if (range.endDate && (!doc.date || doc.date > range.endDate)) return false;
+      return true;
+    }
+    if (preset === 'all') return true;
+
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
+    const docDate = parseDocumentDate(doc.date);
+    if (!docDate) return false;
 
+    if (preset === 'this_month') {
+      return docDate.getFullYear() === currentYear && docDate.getMonth() === currentMonth;
+    }
+    if (preset === 'last_month') {
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      return docDate.getFullYear() === lastMonthYear && docDate.getMonth() === lastMonth;
+    }
+    if (preset === 'this_year') {
+      return docDate.getFullYear() === currentYear;
+    }
+    return true;
+  };
+
+  const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
-      if (docTypeFilter !== 'all' && doc.type !== docTypeFilter) {
-        return false;
-      }
-
-      if (periodPreset === 'custom') {
-        if (customRange.startDate && (!doc.date || doc.date < customRange.startDate)) return false;
-        if (customRange.endDate && (!doc.date || doc.date > customRange.endDate)) return false;
-        return true;
-      }
-
-      if (periodPreset === 'all') return true;
-
-      const docDate = parseDocumentDate(doc.date);
-      if (!docDate) return false;
-
-      if (periodPreset === 'this_month') {
-        return docDate.getFullYear() === currentYear && docDate.getMonth() === currentMonth;
-      }
-      if (periodPreset === 'last_month') {
-        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-        return docDate.getFullYear() === lastMonthYear && docDate.getMonth() === lastMonth;
-      }
-      if (periodPreset === 'this_year') {
-        return docDate.getFullYear() === currentYear;
-      }
-
-      return true;
+      if (docTypeFilter !== 'all' && doc.type !== docTypeFilter) return false;
+      return matchesPeriod(doc, periodPreset, customRange);
     });
   }, [documents, periodPreset, customRange, docTypeFilter]);
+
+  const caDocuments = useMemo(() => {
+    return documents.filter((doc) => matchesPeriod(doc, caPeriod, caCustomRange));
+  }, [documents, caPeriod, caCustomRange]);
+
+  const revenue = useMemo(() => computeRevenue(caDocuments), [caDocuments]);
+
+  const caPeriodLabel =
+    caPeriod === 'this_month'
+      ? 'ce mois'
+      : caPeriod === 'last_month'
+        ? 'le mois dernier'
+        : caPeriod === 'this_year'
+          ? 'cette année'
+          : caPeriod === 'custom'
+            ? 'période personnalisée'
+            : 'toutes périodes';
 
   // KPI + graphique : même moteur que le bandeau Documents
   const stats = useMemo(() => computeFinancialMetrics(filteredDocuments), [filteredDocuments]);
@@ -175,28 +199,27 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Banner & Filters Controls */}
-      <div className="bg-brand-ink text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-xl border border-brand-deep flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+      <div className="glass-nav text-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div>
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <div className="px-3 py-1 rounded-xl bg-brand-mid/20 text-brand-glow border border-brand-glow/30 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <div className="px-3 py-1 rounded-full bg-white/10 text-brand-glow border border-white/15 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Tableau de Bord</span>
+              <span>Tableau de bord</span>
             </div>
-            <span className="text-slate-400 text-xs font-medium">{filteredDocuments.length} document(s)</span>
+            <span className="text-brand-sand/50 text-xs font-medium">{filteredDocuments.length} document(s)</span>
           </div>
-          <h1 className="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white">Analyse des Chiffres</h1>
-          <p className="text-xs text-slate-400 mt-1 hidden sm:block">Suivi en temps réel du chiffre d'affaires, des encaissements et des devis en FCFA.</p>
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold tracking-tight text-white">Analyse des chiffres</h1>
+          <p className="text-xs text-brand-sand/55 mt-1 hidden sm:block">
+            Encaissements, impayés et conversion des devis en FCFA.
+          </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 bg-brand-deep/70 p-2 rounded-2xl border border-white/10 w-full md:w-auto">
-          <div className="flex items-center gap-1.5 px-2 text-slate-400 text-xs font-bold">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 bg-white/5 p-2 rounded-2xl border border-white/10 w-full md:w-auto backdrop-blur-md">
+          <div className="flex items-center gap-1.5 px-2 text-brand-sand/55 text-xs font-bold">
             <Filter className="w-3.5 h-3.5 text-brand-glow" />
             <span>Filtres</span>
           </div>
 
-          {/* Popover Calendar Date Picker */}
           <DateRangePicker
             dateRange={customRange}
             onChange={(newRange) => setCustomRange(newRange)}
@@ -204,11 +227,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             onPresetChange={(newPreset) => setPeriodPreset(newPreset)}
           />
 
-          {/* Document Type selector */}
           <select
             value={docTypeFilter}
             onChange={(e) => setDocTypeFilter(e.target.value as any)}
-            className="w-full sm:w-auto bg-brand-ink text-slate-200 text-xs font-bold rounded-xl px-3 py-2.5 sm:py-2 border border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-mid cursor-pointer"
+            className="w-full sm:w-auto bg-white/10 text-brand-paper text-xs font-bold rounded-xl px-3 py-2.5 sm:py-2 border border-white/15 focus:outline-none focus:ring-2 focus:ring-brand-glow/40 cursor-pointer"
           >
             <option value="all">Tous les types</option>
             <option value="facture">Factures uniquement</option>
@@ -217,18 +239,209 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
       </div>
 
+      {/* ——— Votre chiffre d'affaires (factures statut Payé) ——— */}
+      <section className="glass-card rounded-3xl overflow-hidden border border-brand-glow/20">
+        <div className="p-5 sm:p-6 border-b border-white/10 bg-gradient-to-br from-brand-glow/10 via-transparent to-sky-500/5">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="page-kicker !text-brand-glow">Performance</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-sand/45 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                  Statut Payé uniquement
+                </span>
+              </div>
+              <h2 className="font-display text-lg sm:text-xl font-extrabold text-brand-sand tracking-tight flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-brand-glow shrink-0" />
+                Votre chiffre d&apos;affaires
+              </h2>
+              <p className="text-xs text-brand-sand/50 mt-1">
+                Somme TTC des factures payées · filtre {caPeriodLabel}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+              <div className="glass-segment !p-0.5">
+                {(
+                  [
+                    ['this_month', 'Ce mois'],
+                    ['last_month', 'Mois dern.'],
+                    ['this_year', 'Cette année'],
+                    ['all', 'Tout'],
+                    ['custom', 'Perso.'],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setCaPeriod(id);
+                      if (id !== 'custom') setCaCustomRange({ startDate: '', endDate: '' });
+                    }}
+                    className={`glass-segment-btn !px-2.5 !py-1.5 !text-[11px] ${
+                      caPeriod === id ? 'is-active' : ''
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {caPeriod === 'custom' && (
+                <DateRangePicker
+                  dateRange={caCustomRange}
+                  onChange={setCaCustomRange}
+                  preset="custom"
+                  onPresetChange={() => setCaPeriod('custom')}
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-1 rounded-2xl bg-black/20 border border-white/10 p-4 sm:p-5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand-sand/45 mb-1">
+                CA encaissé
+              </p>
+              <p className="kpi-figure font-mono text-2xl sm:text-3xl font-black text-brand-glow tracking-tight">
+                {formatFCFA(revenue.totalCA)}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-black/15 border border-white/10 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand-sand/45 mb-1">
+                Factures payées
+              </p>
+              <p className="kpi-figure text-2xl font-black text-brand-sand">
+                {revenue.countPaid}
+              </p>
+              <p className="text-[11px] text-brand-sand/45 mt-1">document(s) statut Payé</p>
+            </div>
+            <div className="rounded-2xl bg-black/15 border border-white/10 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand-sand/45 mb-1">
+                Ticket moyen
+              </p>
+              <p className="kpi-figure text-xl sm:text-2xl font-black text-brand-sand">
+                {formatFCFA(revenue.averageTicket)}
+              </p>
+              <p className="text-[11px] text-brand-sand/45 mt-1">par facture payée</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 lg:divide-x divide-white/10">
+          <div className="lg:col-span-3 p-5 sm:p-6">
+            <h3 className="text-sm font-bold text-brand-sand mb-3 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-brand-glow" />
+              CA par mois
+            </h3>
+            <div className="h-52 w-full">
+              {revenue.byMonth.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenue.byMonth} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11, fill: '#94a3b8' }}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 10, fill: '#94a3b8' }}
+                      tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      formatter={(value: number | string) => [formatFCFA(Number(value)), 'CA']}
+                      labelFormatter={(label) => String(label)}
+                      cursor={{ fill: 'rgba(45, 212, 191, 0.12)', radius: 8 }}
+                      contentStyle={{
+                        borderRadius: '14px',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        background: 'rgba(8,32,30,0.95)',
+                        color: '#e2e8f0',
+                      }}
+                      itemStyle={{ color: '#5eead4' }}
+                      labelStyle={{ color: '#e8dfd2' }}
+                    />
+                    <Bar
+                      dataKey="ca"
+                      name="CA"
+                      fill="#2dd4bf"
+                      radius={[8, 8, 0, 0]}
+                      maxBarSize={48}
+                      activeBar={{ fill: '#5eead4', stroke: '#99f6e4', strokeWidth: 1 }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-brand-sand/40 text-xs gap-2">
+                  <DollarSign className="w-8 h-8 opacity-50" />
+                  <span>Aucune facture payée sur cette période</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:col-span-2 p-5 sm:p-6 border-t lg:border-t-0 border-white/10">
+            <h3 className="text-sm font-bold text-brand-sand mb-3 flex items-center gap-2">
+              <FileCheck className="w-4 h-4 text-brand-glow" />
+              Factures payées
+            </h3>
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              {revenue.paidDocuments.length > 0 ? (
+                revenue.paidDocuments.slice(0, 8).map((doc) => {
+                  const ttc = getDocumentTotals(doc).totalTTC;
+                  return (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      onClick={() => onSelectDocument?.(doc)}
+                      className="w-full text-left flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors cursor-pointer"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-mono text-[11px] font-bold text-brand-glow truncate">
+                          {doc.number}
+                        </div>
+                        <div className="text-[11px] text-brand-sand/55 truncate">
+                          {doc.clientInfo.companyName || doc.clientInfo.name}
+                          {doc.date ? ` · ${formatDateFR(doc.date)}` : ''}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        <span className="font-mono text-xs font-bold text-brand-sand">
+                          {formatFCFA(ttc)}
+                        </span>
+                        {onSelectDocument && <ExternalLink className="w-3.5 h-3.5 text-brand-sand/35" />}
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="text-xs text-brand-sand/40 py-6 text-center">
+                  Passez des factures en statut « Payé » pour voir le CA ici.
+                </p>
+              )}
+              {revenue.paidDocuments.length > 8 && (
+                <p className="text-[10px] text-brand-sand/40 text-center pt-1">
+                  +{revenue.paidDocuments.length - 8} autre(s)
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Encaissé */}
-        <div className="hover-lift glass-card p-5 rounded-3xl relative overflow-hidden group">
+        <div className="hover-lift glass-card kpi-card p-5 pl-6 rounded-3xl relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encaissements Effectifs</span>
-            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
+            <span className="page-kicker">Encaissements</span>
+            <div className="icon-well !w-10 !h-10">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-slate-900 tracking-tight">
+          <div className="kpi-figure text-2xl text-brand-sand tracking-tight">
             {formatFCFA(stats.totalPaid)}
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">
@@ -240,15 +453,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 2: En Attente / Impayés */}
-        <div className="hover-lift glass-card p-5 rounded-3xl relative overflow-hidden group">
+        <div className="hover-lift glass-card kpi-card kpi-card-amber p-5 pl-6 rounded-3xl relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">En Attente de Paiement</span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+            <span className="page-kicker !text-amber-300">À encaisser</span>
+            <div className="icon-well icon-well-amber !w-10 !h-10">
               <Clock className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-amber-900 tracking-tight">
+          <div className="kpi-figure text-2xl text-amber-300 tracking-tight">
             {formatFCFA(stats.totalPending)}
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">
@@ -263,15 +476,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 3: Total Facturé */}
-        <div className="hover-lift glass-card p-5 rounded-3xl relative overflow-hidden group">
+        <div className="hover-lift glass-card kpi-card p-5 pl-6 rounded-3xl relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Total Facturé (Volume TTC)</span>
-            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
+            <span className="page-kicker">Volume facturé</span>
+            <div className="icon-well !w-10 !h-10">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-slate-900 tracking-tight">
+          <div className="kpi-figure text-2xl text-brand-sand tracking-tight">
             {formatFCFA(stats.totalFactured)}
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">
@@ -281,15 +494,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Card 4: Volume & Taux Devis */}
-        <div className="hover-lift glass-card p-5 rounded-3xl relative overflow-hidden group">
+        <div className="hover-lift glass-card kpi-card p-5 pl-6 rounded-3xl relative overflow-hidden group">
           <div className="absolute -right-3 -top-3 w-20 h-20 bg-brand-mid/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Encours Devis & Conversion</span>
-            <div className="w-10 h-10 rounded-2xl bg-brand-mist text-brand-ink flex items-center justify-center font-bold">
+            <span className="page-kicker">Devis en cours</span>
+            <div className="icon-well !w-10 !h-10">
               <FileCheck className="w-5 h-5" />
             </div>
           </div>
-          <div className="text-2xl font-black font-mono text-brand-ink tracking-tight">
+          <div className="kpi-figure text-2xl text-brand-sand tracking-tight">
             {formatFCFA(stats.totalDevisPipeline)}
           </div>
           <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 text-[11px]">

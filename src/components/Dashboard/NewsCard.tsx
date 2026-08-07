@@ -10,40 +10,144 @@ interface NewsItem {
   image?: string;
 }
 
+const LOCAL_IMAGES = [
+  '/mali-bamako.jpg',
+  '/mali-bamako-2.jpg',
+  '/mali-bamako-3.jpg',
+  '/mali-bamako-4.jpg',
+];
+
 const FALLBACK_NEWS: NewsItem[] = [
   {
     id: 'f1',
     title: 'Astuce FacturaCFA : numérotez vos devis et factures pour un suivi clair en FCFA.',
     source: 'FacturaCFA',
-    image: '/mali-bamako.jpg',
+    image: LOCAL_IMAGES[0],
   },
   {
     id: 'f2',
     title: 'Bamako : pensez à indiquer NIF et mentions légales en pied de page de vos documents.',
     source: 'Bonnes pratiques',
-    image: '/mali-bamako-2.jpg',
+    image: LOCAL_IMAGES[1],
   },
   {
     id: 'f3',
     title: 'Conseil : convertissez un devis accepté en facture en un clic pour gagner du temps.',
     source: 'FacturaCFA',
-    image: '/mali-bamako-3.jpg',
+    image: LOCAL_IMAGES[2],
   },
   {
     id: 'f4',
     title: 'Zone UEMOA : le Franc CFA (XOF) reste l’unité de référence pour vos échanges locaux.',
     source: 'Économie',
-    image: '/mali-bamako-4.jpg',
+    image: LOCAL_IMAGES[3],
+  },
+  {
+    id: 'f5',
+    title: 'Mali : suivez l’actualité économique et institutionnelle pour anticiper vos devis clients.',
+    source: 'Bamako',
+    image: LOCAL_IMAGES[0],
+  },
+  {
+    id: 'f6',
+    title: 'Kayes, Sikasso, Mopti : adaptez délais de paiement et échéances à vos clients régionaux.',
+    source: 'Bonnes pratiques',
+    image: LOCAL_IMAGES[1],
   },
 ];
 
-const FEEDS: { url: string; source: string }[] = [
+interface FeedConfig {
+  url: string;
+  source: string;
+  /** Si true, ne garde que les titres clairement liés au Mali */
+  requireMaliMention?: boolean;
+}
+
+const FEEDS: FeedConfig[] = [
   { url: 'https://www.rfi.fr/fr/tag/mali/rss', source: 'RFI' },
   { url: 'https://www.france24.com/fr/tag/mali/rss', source: 'France 24' },
+  { url: 'https://www.studiotamani.org/rss', source: 'Studio Tamani' },
+  { url: 'https://malijet.com/rss.xml', source: 'Malijet' },
+  { url: 'https://www.lemonde.fr/mali/rss_full.xml', source: 'Le Monde' },
+  {
+    url: 'https://news.google.com/rss/search?q=Mali+when:14d&hl=fr&gl=ML&ceid=ML:fr',
+    source: 'Google News',
+  },
+  {
+    url: 'https://feeds.bbci.co.uk/afrique/rss.xml',
+    source: 'BBC Afrique',
+    requireMaliMention: true,
+  },
 ];
 
-const ROTATE_MS = 5000;
-const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MALI_MENTION_RE =
+  /\b(mali|malienn?e?s?|bamako|s[ée]gou|tombouctou|timbuktu|gao|kidal|mopti|sikasso|kayes|koulikoro|sahel|azawad|fcfa|uemoa|aes)\b/i;
+
+const ROTATE_MS = 10000; // changement toutes les 10 s
+const FADE_MS_CLASS = 'duration-[1800ms]';
+const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+const MAX_ITEMS = 28;
+const NEWS_TZ = 'Africa/Bamako';
+const CACHE_KEY = 'facturacfa_news_daily_v2';
+
+interface NewsCache {
+  dayKey: string;
+  items: NewsItem[];
+  fetchedAt: string;
+}
+
+function todayKey(date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: NEWS_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function readNewsCache(): NewsCache | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as NewsCache;
+    if (!parsed?.dayKey || !Array.isArray(parsed.items)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeNewsCache(items: NewsItem[]): void {
+  try {
+    const payload: NewsCache = {
+      dayKey: todayKey(),
+      items,
+      fetchedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+/** ms until next midnight in Africa/Bamako (+ 2s buffer) */
+function msUntilNextBamakoMidnight(): number {
+  const now = Date.now();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: NEWS_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date(now));
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value || 0);
+  const h = get('hour');
+  const m = get('minute');
+  const s = get('second');
+  const elapsed = ((h * 60 + m) * 60 + s) * 1000;
+  const dayMs = 24 * 60 * 60 * 1000;
+  return dayMs - elapsed + 2000;
+}
 
 function rss2jsonUrl(rss: string): string {
   return `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`;
@@ -67,7 +171,7 @@ function extractImage(it: any): string | undefined {
   return candidates.find((u) => /^https?:\/\//i.test(u) && !u.includes('1x1'));
 }
 
-function isWithinLast7Days(dateStr?: string): boolean {
+function isRecentEnough(dateStr?: string): boolean {
   if (!dateStr) return false;
   const t = new Date(dateStr).getTime();
   if (Number.isNaN(t)) return false;
@@ -92,39 +196,68 @@ function normalizeTitle(title: string): string {
   return title.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
-async function fetchFeed(feed: { url: string; source: string }): Promise<NewsItem[]> {
+function looksLikeMaliNews(title: string, description?: string): boolean {
+  const hay = `${title} ${description || ''}`;
+  return MALI_MENTION_RE.test(hay);
+}
+
+function fallbackImage(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return LOCAL_IMAGES[h % LOCAL_IMAGES.length];
+}
+
+async function fetchFeed(feed: FeedConfig): Promise<NewsItem[]> {
   const res = await fetch(rss2jsonUrl(feed.url));
   if (!res.ok) throw new Error('rss');
   const data = await res.json();
   if (data.status !== 'ok' || !Array.isArray(data.items)) return [];
 
-  return data.items
-    .filter((it: any) => isWithinLast7Days(it.pubDate))
-    .map((it: any, i: number) => {
-      const title = String(it.title || 'Actualité').replace(/\s+/g, ' ').trim();
-      return {
-        id: String(it.guid || it.link || `${feed.source}-${i}`),
-        title,
-        source: feed.source,
-        link: it.link,
-        pubDate: it.pubDate,
-        image: extractImage(it),
-      } satisfies NewsItem;
-    })
-    .filter((it: NewsItem) => Boolean(it.image));
+  const out: NewsItem[] = [];
+  data.items.forEach((it: any, i: number) => {
+    if (!isRecentEnough(it.pubDate)) return;
+    const title = String(it.title || 'Actualité').replace(/\s+/g, ' ').trim();
+    const description = String(it.description || '');
+    if (feed.requireMaliMention && !looksLikeMaliNews(title, description)) return;
+    out.push({
+      id: String(it.guid || it.link || `${feed.source}-${i}`),
+      title,
+      source: feed.source,
+      link: it.link,
+      pubDate: it.pubDate,
+      image: extractImage(it) || fallbackImage(title),
+    });
+  });
+  return out;
 }
 
 export const NewsCard: React.FC = () => {
-  const [items, setItems] = useState<NewsItem[]>(FALLBACK_NEWS);
+  const [items, setItems] = useState<NewsItem[]>(() => {
+    const cached = readNewsCache();
+    if (cached?.dayKey === todayKey() && cached.items.length) return cached.items;
+    return FALLBACK_NEWS;
+  });
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [live, setLive] = useState(false);
+  const [live, setLive] = useState(() => {
+    const cached = readNewsCache();
+    return Boolean(cached?.dayKey === todayKey() && cached.items.length);
+  });
   const [imgBroken, setImgBroken] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let midnightTimer: number | undefined;
 
-    const load = async () => {
+    const applyItems = (next: NewsItem[], isLive: boolean) => {
+      setItems(next);
+      setLive(isLive);
+      setIndex(0);
+      setImgBroken(false);
+      if (isLive && next.length) writeNewsCache(next);
+    };
+
+    const fetchFresh = async () => {
       try {
         const results = await Promise.allSettled(FEEDS.map(fetchFeed));
         if (cancelled) return;
@@ -146,26 +279,66 @@ export const NewsCard: React.FC = () => {
           (a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime()
         );
 
-        const next = merged.slice(0, 12);
-        setItems(next.length ? next : FALLBACK_NEWS);
-        setLive(next.length > 0);
-        setIndex(0);
-        setImgBroken(false);
+        const next = merged.slice(0, MAX_ITEMS);
+        if (next.length) {
+          applyItems(next, true);
+        } else {
+          const cached = readNewsCache();
+          if (cached?.items.length) {
+            applyItems(cached.items, true);
+          } else {
+            applyItems(FALLBACK_NEWS, false);
+          }
+        }
       } catch {
-        if (!cancelled) {
-          setItems(FALLBACK_NEWS);
-          setLive(false);
+        if (cancelled) return;
+        const cached = readNewsCache();
+        if (cached?.items.length) {
+          applyItems(cached.items, true);
+        } else {
+          applyItems(FALLBACK_NEWS, false);
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
-    void load();
-    const refresh = window.setInterval(load, 15 * 60 * 1000);
+    const loadForToday = async (force = false) => {
+      const day = todayKey();
+      const cached = readNewsCache();
+      if (!force && cached?.dayKey === day && cached.items.length) {
+        applyItems(cached.items, true);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      await fetchFresh();
+    };
+
+    const scheduleMidnightRefresh = () => {
+      if (midnightTimer) window.clearTimeout(midnightTimer);
+      midnightTimer = window.setTimeout(() => {
+        void loadForToday(true).then(scheduleMidnightRefresh);
+      }, msUntilNextBamakoMidnight());
+    };
+
+    void loadForToday(false);
+    scheduleMidnightRefresh();
+
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      const cached = readNewsCache();
+      if (!cached || cached.dayKey !== todayKey()) {
+        void loadForToday(true);
+      }
+      scheduleMidnightRefresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       cancelled = true;
-      window.clearInterval(refresh);
+      if (midnightTimer) window.clearTimeout(midnightTimer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 
@@ -184,11 +357,11 @@ export const NewsCard: React.FC = () => {
 
   return (
     <section className="news-glass hover-lift group/news">
-      {/* Fond photo flou pour profondeur verre */}
+      {/* Fond photo — flou léger pour rester lisible */}
       {bgImage && (
         <div
           aria-hidden
-          className="absolute inset-0 z-0 scale-110 opacity-35 blur-2xl transition-opacity duration-700"
+          className={`absolute inset-0 z-0 scale-105 opacity-50 blur-[2px] transition-opacity ${FADE_MS_CLASS}`}
           style={{
             backgroundImage: `url(${bgImage})`,
             backgroundSize: 'cover',
@@ -198,23 +371,27 @@ export const NewsCard: React.FC = () => {
       )}
       <div
         aria-hidden
-        className="absolute inset-0 z-0 bg-gradient-to-br from-white/50 via-brand-mist/30 to-brand-mid/10 dark:from-[#13201e]/50 dark:via-transparent dark:to-brand-glow/5"
+        className="absolute inset-0 z-0 bg-gradient-to-br from-[#0f2a28]/55 via-[#13201e]/40 to-brand-mid/20"
       />
 
       <div className="news-glass-inner">
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-4 pb-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="relative w-10 h-10 rounded-2xl bg-white/40 dark:bg-white/10 border border-white/50 dark:border-white/15 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-              <Newspaper className="w-4 h-4 text-brand-ink dark:text-brand-glow" />
+            <div className="relative w-10 h-10 rounded-2xl bg-white/40 border border-white/50 backdrop-blur-md flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+              <Newspaper className="w-4 h-4 text-brand-glow" />
               <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-glow shadow-[0_0_10px_rgba(45,212,191,0.7)] animate-pulse" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-display font-extrabold text-[15px] tracking-tight text-brand-ink dark:text-brand-sand truncate">
+              <h3 className="font-display font-extrabold text-[15px] tracking-tight text-brand-sand truncate">
                 Actualité Mali
               </h3>
-              <p className="text-[10px] text-slate-600/80 dark:text-brand-sand/55 flex items-center gap-1 mt-0.5">
+              <p className="text-[10px] text-brand-sand/55 flex items-center gap-1 mt-0.5">
                 <Radio className="w-3 h-3 text-brand-mid" />
-                {loading ? 'Chargement…' : live ? 'Fil photo · 7 derniers jours' : 'Infos & conseils'}
+                {loading
+                  ? 'Chargement…'
+                  : live
+                    ? `${items.length} titres · 14 j · RFI, Tamani, Malijet…`
+                    : 'Infos & conseils'}
               </p>
             </div>
           </div>
@@ -224,12 +401,12 @@ export const NewsCard: React.FC = () => {
               <Sparkles className="w-3 h-3 text-brand-mid" />
               Live
             </span>
-            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-full bg-white/25 dark:bg-white/5 border border-white/40 dark:border-white/10 backdrop-blur-md">
-              {items.slice(0, 6).map((_, i) => (
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-full bg-white/25 border border-white/40 backdrop-blur-md">
+              {items.slice(0, 8).map((_, i) => (
                 <span
                   key={i}
                   className={`news-glass-dot ${
-                    i === index % Math.min(items.length, 6) ? 'is-active' : ''
+                    i === index % Math.min(items.length, 8) ? 'is-active' : ''
                   }`}
                 />
               ))}
@@ -243,10 +420,10 @@ export const NewsCard: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className={`flex gap-3 sm:gap-4 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`flex gap-3 sm:gap-4 transition-all ${FADE_MS_CLASS} ease-[cubic-bezier(0.22,1,0.36,1)] ${
                   active
                     ? 'relative opacity-100 translate-y-0 scale-100'
-                    : 'absolute inset-x-3 sm:inset-x-4 top-3 bottom-3 opacity-0 translate-y-4 scale-[0.98] pointer-events-none'
+                    : 'absolute inset-x-3 sm:inset-x-4 top-3 bottom-3 opacity-0 translate-y-2 scale-[0.99] pointer-events-none'
                 }`}
                 aria-hidden={!active}
               >
@@ -255,7 +432,7 @@ export const NewsCard: React.FC = () => {
                     <img
                       src={item.image}
                       alt=""
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover/news:scale-105"
+                      className={`w-full h-full object-cover transition-transform ${FADE_MS_CLASS} group-hover/news:scale-105`}
                       loading={active ? 'eager' : 'lazy'}
                       referrerPolicy="no-referrer"
                       onError={() => {
@@ -275,10 +452,10 @@ export const NewsCard: React.FC = () => {
                       {item.source}
                     </span>
                   )}
-                  <p className="text-sm sm:text-[15px] font-semibold text-slate-800 dark:text-brand-sand min-h-[2.7rem] leading-snug line-clamp-2 drop-shadow-sm">
+                  <p className="text-sm sm:text-[15px] font-semibold text-brand-sand min-h-[2.7rem] leading-snug line-clamp-2 drop-shadow-sm">
                     {item.title}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-600/80 dark:text-brand-sand/50">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-brand-sand/50">
                     {item.pubDate && <span>{formatRelative(item.pubDate)}</span>}
                   </div>
                   {item.link && active && (
@@ -299,7 +476,7 @@ export const NewsCard: React.FC = () => {
         </div>
 
         <div className="news-glass-marquee overflow-hidden">
-          <div className="news-marquee flex whitespace-nowrap py-2.5 text-[11px] font-medium text-slate-700/85 dark:text-brand-sand/70">
+          <div className="news-marquee flex whitespace-nowrap py-2.5 text-[11px] font-medium text-brand-sand/70">
             {[...items, ...items].map((item, i) => (
               <span key={`${item.id}-m-${i}`} className="mx-4 inline-flex items-center gap-2">
                 {item.image ? (
@@ -315,7 +492,7 @@ export const NewsCard: React.FC = () => {
                 )}
                 <span>{item.title}</span>
                 {item.source && (
-                  <span className="text-brand-mid dark:text-brand-glow font-semibold">
+                  <span className="text-brand-mid font-semibold">
                     · {item.source}
                   </span>
                 )}

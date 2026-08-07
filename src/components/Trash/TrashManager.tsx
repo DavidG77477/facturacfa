@@ -95,29 +95,30 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="bg-brand-ink text-white p-6 rounded-3xl border border-brand-deep shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="glass-nav text-white p-5 sm:p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center font-black">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-300 border border-rose-400/30 flex items-center justify-center">
             <Trash2 className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-white">Corbeille & Éléments Supprimés</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-extrabold">
-                {trashItems.length} élément{trashItems.length > 1 ? 's' : ''}
+            <p className="text-[10px] font-bold uppercase tracking-wider text-rose-300/90 mb-1">Corbeille</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-display text-xl font-extrabold text-white tracking-tight">Éléments supprimés</h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/30 text-rose-200 text-xs font-bold">
+                {trashItems.length}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Retrouvez et restaurez vos devis, factures et clients récemment supprimés en un clic.
+            <p className="text-xs text-brand-sand/55 mt-1">
+              Restaurez devis, factures et clients en un clic.
             </p>
           </div>
         </div>
 
         {trashItems.length > 0 && (
           <button
+            type="button"
             onClick={() => setIsEmptyTrashModalOpen(true)}
-            className="px-4 py-2.5 bg-rose-600/80 hover:bg-rose-600 text-white font-bold rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm border border-rose-500/50"
+            className="hover-press px-4 py-2.5 bg-rose-600/85 hover:bg-rose-600 text-white font-bold rounded-xl text-xs flex items-center gap-2 cursor-pointer border border-rose-400/40"
           >
             <Trash2 className="w-4 h-4" />
             <span>Vider la corbeille</span>
@@ -125,50 +126,38 @@ export const TrashManager: React.FC<TrashManagerProps> = ({
         )}
       </div>
 
-      {/* Search and Filter Tabs */}
       <div className="glass-card p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-        {/* Search Bar */}
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 z-10" />
           <input
             type="text"
             placeholder="Rechercher dans la corbeille..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-mid focus:bg-white transition-all"
+            className="glass-input w-full pl-10 pr-4 py-2.5 text-xs font-medium"
           />
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto bg-slate-100 p-1 rounded-xl">
+        <div className="glass-segment w-full sm:w-auto overflow-x-auto">
           <button
+            type="button"
             onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              filterType === 'all'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
+            className={`glass-segment-btn ${filterType === 'all' ? 'is-active' : ''}`}
           >
             Tous ({trashItems.length})
           </button>
           <button
+            type="button"
             onClick={() => setFilterType('document')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterType === 'document'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
+            className={`glass-segment-btn inline-flex items-center gap-1.5 ${filterType === 'document' ? 'is-active' : ''}`}
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Documents ({trashItems.filter((i) => i.itemType === 'document').length})</span>
           </button>
           <button
+            type="button"
             onClick={() => setFilterType('client')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              filterType === 'client'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
+            className={`glass-segment-btn inline-flex items-center gap-1.5 ${filterType === 'client' ? 'is-active' : ''}`}
           >
             <Users className="w-3.5 h-3.5" />
             <span>Clients ({trashItems.filter((i) => i.itemType === 'client').length})</span>

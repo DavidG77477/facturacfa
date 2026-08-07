@@ -114,6 +114,123 @@ const FillableCell: React.FC<FillableCellProps> = ({
   );
 };
 
+/** Colonnes du tableau articles — largeurs redimensionnables */
+type EditorColKey =
+  | 'index'
+  | 'description'
+  | 'dimWidth'
+  | 'dimHeight'
+  | 'clientPrice'
+  | 'quantity'
+  | 'unitPrice'
+  | 'discount'
+  | 'total'
+  | 'actions';
+
+const EDITOR_COL_STORAGE_KEY = 'facturacfa_editor_col_widths_v1';
+
+const DEFAULT_EDITOR_COL_WIDTHS: Record<EditorColKey, number> = {
+  index: 44,
+  description: 220,
+  dimWidth: 112,
+  dimHeight: 112,
+  clientPrice: 120,
+  quantity: 72,
+  unitPrice: 128,
+  discount: 80,
+  total: 128,
+  actions: 44,
+};
+
+const MIN_EDITOR_COL_WIDTHS: Record<EditorColKey, number> = {
+  index: 36,
+  description: 120,
+  dimWidth: 72,
+  dimHeight: 72,
+  clientPrice: 80,
+  quantity: 52,
+  unitPrice: 88,
+  discount: 56,
+  total: 88,
+  actions: 36,
+};
+
+function readEditorColWidths(): Record<EditorColKey, number> {
+  try {
+    const raw = localStorage.getItem(EDITOR_COL_STORAGE_KEY);
+    if (!raw) return { ...DEFAULT_EDITOR_COL_WIDTHS };
+    const parsed = JSON.parse(raw) as Partial<Record<EditorColKey, number>>;
+    return { ...DEFAULT_EDITOR_COL_WIDTHS, ...parsed };
+  } catch {
+    return { ...DEFAULT_EDITOR_COL_WIDTHS };
+  }
+}
+
+interface ResizableThProps {
+  colKey: EditorColKey;
+  width: number;
+  onResize: (key: EditorColKey, width: number) => void;
+  className?: string;
+  children: React.ReactNode;
+  title?: string;
+}
+
+const ResizableTh: React.FC<ResizableThProps> = ({
+  colKey,
+  width,
+  onResize,
+  className = '',
+  children,
+  title,
+}) => {
+  const startRef = useRef<{ x: number; w: number } | null>(null);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startW = width;
+    startRef.current = { x: startX, w: startW };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+
+    const onMove = (ev: PointerEvent) => {
+      if (!startRef.current) return;
+      const next = Math.max(
+        MIN_EDITOR_COL_WIDTHS[colKey],
+        Math.round(startRef.current.w + (ev.clientX - startRef.current.x))
+      );
+      onResize(colKey, next);
+    };
+    const onUp = () => {
+      startRef.current = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      document.body.classList.remove('col-resizing');
+    };
+    document.body.classList.add('col-resizing');
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  return (
+    <th
+      className={`relative select-none ${className}`}
+      style={{ width, minWidth: width, maxWidth: width }}
+      title={title}
+    >
+      <div className="pr-2 truncate">{children}</div>
+      <span
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Redimensionner la colonne"
+        title="Glisser pour redimensionner"
+        onPointerDown={onPointerDown}
+        className="col-resize-handle"
+      />
+    </th>
+  );
+};
+
 interface DocumentEditorProps {
   documentToEdit?: InvoiceDocument | null;
   /** Type demandé pour une création (ignoré en édition) */
@@ -245,6 +362,31 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const hasUserEditedRef = useRef(Boolean(restoredDraft));
   const skipNextTypeNumberGen = useRef(Boolean(restoredDraft?.number));
+  const [colWidths, setColWidths] = useState<Record<EditorColKey, number>>(readEditorColWidths);
+
+  const setColWidth = (key: EditorColKey, width: number) => {
+    setColWidths((prev) => {
+      const next = { ...prev, [key]: width };
+      try {
+        localStorage.setItem(EDITOR_COL_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
+
+  const tableMinWidth =
+    colWidths.index +
+    colWidths.description +
+    (showDimensions
+      ? colWidths.dimWidth + colWidths.dimHeight + colWidths.clientPrice
+      : 0) +
+    colWidths.quantity +
+    colWidths.unitPrice +
+    (showDiscount ? colWidths.discount : 0) +
+    colWidths.total +
+    colWidths.actions;
 
   // Uniqueness check for document number
   const isNumberUnique = isDocumentNumberUnique(number, documentToEdit?.id || docId, existingDocuments);
@@ -358,22 +500,29 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     return Math.round(((largeur * hauteur) / 1000000) * prixClient);
   };
 
-  const handleAddItem = () => {
-    setItems((prev) => [
-      ...prev,
-      {
-        id: `item_${Date.now()}_${prev.length + 1}`,
-        kind: 'line',
-        description: '',
-        length: '',
-        width: '',
-        clientPrice: undefined,
-        quantity: 1,
-        unitPrice: 0,
-        taxRate: taxRate,
-        discount: 0,
-      },
-    ]);
+  const makeLineItem = (suffix: number | string): DocumentItem => ({
+    id: `item_${Date.now()}_${suffix}`,
+    kind: 'line',
+    description: '',
+    length: '',
+    width: '',
+    clientPrice: undefined,
+    quantity: 1,
+    unitPrice: 0,
+    taxRate: taxRate,
+    discount: 0,
+  });
+
+  const handleAddItem = (insertAtIndex?: number) => {
+    const line = makeLineItem(Math.random().toString(36).slice(2, 7));
+    setItems((prev) => {
+      if (insertAtIndex === undefined || insertAtIndex < 0 || insertAtIndex > prev.length) {
+        return [...prev, line];
+      }
+      const next = [...prev];
+      next.splice(insertAtIndex, 0, line);
+      return next;
+    });
   };
 
   const handleAddSection = (insertAtIndex?: number) => {
@@ -395,6 +544,13 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       return next;
     });
   };
+
+  const editorColSpanWithoutActions =
+    2 + // # + description
+    (showDimensions ? 3 : 0) +
+    2 + // qté + P.U.
+    (showDiscount ? 1 : 0) +
+    1; // total HT
 
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
@@ -645,7 +801,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header & Navigation */}
-      <div className="sticky top-14 sm:top-16 z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 glass-card p-3 sm:p-5">
+      <div className="sticky top-[4.5rem] sm:top-[5.25rem] z-30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 glass-card p-3 sm:p-5">
         <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
           <button
             onClick={handleCancel}
@@ -1005,7 +1161,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   }`}
                 >
                   <Ruler className="w-3.5 h-3.5" />
-                  <span>{showDimensions ? 'Masquer Hauteur & Largeur' : 'Ajouter Hauteur & Largeur'}</span>
+                  <span>{showDimensions ? 'Masquer Largeur & Hauteur' : 'Ajouter Largeur & Hauteur'}</span>
                 </button>
                 <button
                   type="button"
@@ -1043,36 +1199,180 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
             <p className="sm:hidden text-[11px] text-slate-500 font-medium -mt-1 mb-1">
               Faites glisser horizontalement pour voir toutes les colonnes et les carrés bleus.
             </p>
+            <p className="hidden sm:block text-[11px] text-slate-500 font-medium -mt-1 mb-1">
+              Bord droit d’un en-tête → glisser pour régler la largeur de la colonne.
+            </p>
             <div className={`overflow-x-auto overscroll-x-contain rounded-xl border border-slate-200 ${fillDrag ? 'select-none cursor-crosshair' : ''}`}>
-              <table className="w-full min-w-[720px] text-left border-collapse">
+              <table
+                className="text-left border-collapse table-fixed"
+                style={{ width: tableMinWidth, minWidth: tableMinWidth }}
+              >
+                <colgroup>
+                  <col style={{ width: colWidths.index }} />
+                  <col style={{ width: colWidths.description }} />
+                  {showDimensions && (
+                    <>
+                      <col style={{ width: colWidths.dimWidth }} />
+                      <col style={{ width: colWidths.dimHeight }} />
+                      <col style={{ width: colWidths.clientPrice }} />
+                    </>
+                  )}
+                  <col style={{ width: colWidths.quantity }} />
+                  <col style={{ width: colWidths.unitPrice }} />
+                  {showDiscount && <col style={{ width: colWidths.discount }} />}
+                  <col style={{ width: colWidths.total }} />
+                  <col style={{ width: colWidths.actions }} />
+                </colgroup>
                 <thead>
                   <tr className="bg-slate-50 border-y border-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider">
-                    <th className="py-2.5 px-2 w-10 text-center">#</th>
-                    <th className="py-2.5 px-3 min-w-[180px]">Description</th>
+                    <ResizableTh
+                      colKey="index"
+                      width={colWidths.index}
+                      onResize={setColWidth}
+                      className="py-2.5 px-2 text-center"
+                    >
+                      #
+                    </ResizableTh>
+                    <ResizableTh
+                      colKey="description"
+                      width={colWidths.description}
+                      onResize={setColWidth}
+                      className="py-2.5 px-3 text-left"
+                    >
+                      Description
+                    </ResizableTh>
                     {showDimensions && (
                       <>
-                        <th className="py-2.5 px-2 w-28 text-center">Hauteur (mm)</th>
-                        <th className="py-2.5 px-2 w-28 text-center">Largeur (mm)</th>
-                        <th className="py-2.5 px-2 w-28 text-center bg-brand-mist/80 text-brand-ink border-x border-brand-mid/25/60 font-bold">
+                        <ResizableTh
+                          colKey="dimWidth"
+                          width={colWidths.dimWidth}
+                          onResize={setColWidth}
+                          className="py-2.5 px-2 text-center"
+                        >
+                          Largeur (mm)
+                        </ResizableTh>
+                        <ResizableTh
+                          colKey="dimHeight"
+                          width={colWidths.dimHeight}
+                          onResize={setColWidth}
+                          className="py-2.5 px-2 text-center"
+                        >
+                          Hauteur (mm)
+                        </ResizableTh>
+                        <ResizableTh
+                          colKey="clientPrice"
+                          width={colWidths.clientPrice}
+                          onResize={setColWidth}
+                          className="py-2.5 px-2 text-center bg-brand-mist/80 text-brand-ink border-x border-brand-mid/25/60 font-bold"
+                        >
                           Prix Client
-                        </th>
+                        </ResizableTh>
                       </>
                     )}
-                    <th className="py-2.5 px-2 w-16 text-center">Qté</th>
-                    <th className="py-2.5 px-3 w-28 text-right">P.U. HT ({currency})</th>
-                    {showDiscount && <th className="py-2.5 px-2 w-16 text-center">Remise (%)</th>}
-                    <th className="py-2.5 px-3 w-28 text-right">Total HT</th>
-                    <th className="py-2.5 px-2 w-8 text-center"></th>
+                    <ResizableTh
+                      colKey="quantity"
+                      width={colWidths.quantity}
+                      onResize={setColWidth}
+                      className="py-2.5 px-2 text-center"
+                    >
+                      Qté
+                    </ResizableTh>
+                    <ResizableTh
+                      colKey="unitPrice"
+                      width={colWidths.unitPrice}
+                      onResize={setColWidth}
+                      className="py-2.5 px-3 text-right"
+                    >
+                      P.U. HT ({currency})
+                    </ResizableTh>
+                    {showDiscount && (
+                      <ResizableTh
+                        colKey="discount"
+                        width={colWidths.discount}
+                        onResize={setColWidth}
+                        className="py-2.5 px-2 text-center"
+                      >
+                        Remise (%)
+                      </ResizableTh>
+                    )}
+                    <ResizableTh
+                      colKey="total"
+                      width={colWidths.total}
+                      onResize={setColWidth}
+                      className="py-2.5 px-3 text-right"
+                    >
+                      Total HT
+                    </ResizableTh>
+                    <ResizableTh
+                      colKey="actions"
+                      width={colWidths.actions}
+                      onResize={setColWidth}
+                      className="py-2.5 px-2 text-center"
+                    >
+                      {' '}
+                    </ResizableTh>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
-                  {items.map((item, rowIndex) => {
+                  {(() => {
+                    let lineNo = 0;
+                    return items.map((item, rowIndex) => {
+                    if (isSectionItem(item)) {
+                      return (
+                        <tr
+                          key={item.id}
+                          data-item-row-index={rowIndex}
+                          className="bg-gradient-to-r from-brand-mist/90 to-slate-100/80"
+                        >
+                          <td colSpan={editorColSpanWithoutActions} className="py-2.5 px-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-xl bg-brand-ink text-brand-glow border border-brand-mid/30">
+                                <Heading2 className="w-4 h-4" />
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <label className="block text-[9px] font-bold uppercase tracking-wider text-brand-ink/70 mb-0.5">
+                                  Titre / séparateur
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Ex: Stores salon · Menuiserie · Pose…"
+                                  value={item.description}
+                                  onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                                  className="w-full px-3 py-2 bg-white border border-brand-mid/30 rounded-xl text-slate-900 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddItem(rowIndex + 1)}
+                                className="shrink-0 px-2.5 py-2 rounded-xl text-[11px] font-bold text-brand-ink bg-white border border-brand-mid/25 hover:bg-brand-mist cursor-pointer"
+                                title="Ajouter une ligne sous ce titre"
+                              >
+                                <Plus className="w-3.5 h-3.5 inline mr-1" />
+                                Ligne
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-center align-middle">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                              title="Supprimer ce titre"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    lineNo += 1;
                     const lineHT = item.quantity * item.unitPrice * (1 - (item.discount || 0) / 100);
 
                     return (
                       <tr key={item.id} data-item-row-index={rowIndex}>
                         <td className="py-2.5 px-2 text-center text-[11px] font-black text-slate-400 tabular-nums">
-                          {rowIndex + 1}
+                          {lineNo}
                         </td>
                         <FillableCell
                           field="description"
@@ -1084,7 +1384,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         >
                           <input
                             type="text"
-                            required
+                            required={!isSectionItem(item)}
                             placeholder="Ex: Store Vénitien Alu..."
                             value={item.description}
                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
@@ -1093,22 +1393,6 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         </FillableCell>
                         {showDimensions && (
                           <>
-                            <FillableCell
-                              field="length"
-                              rowIndex={rowIndex}
-                              value={item.length}
-                              fillDrag={fillDrag}
-                              onFillStart={handleFillStart}
-                              className="py-2.5 px-1.5"
-                            >
-                              <input
-                                type="text"
-                                placeholder="ex: 2400"
-                                value={item.length ?? ''}
-                                onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
-                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
-                              />
-                            </FillableCell>
                             <FillableCell
                               field="width"
                               rowIndex={rowIndex}
@@ -1122,6 +1406,22 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                 placeholder="ex: 1600"
                                 value={item.width ?? ''}
                                 onChange={(e) => handleItemChange(item.id, 'width', e.target.value)}
+                                className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                              />
+                            </FillableCell>
+                            <FillableCell
+                              field="length"
+                              rowIndex={rowIndex}
+                              value={item.length}
+                              fillDrag={fillDrag}
+                              onFillStart={handleFillStart}
+                              className="py-2.5 px-1.5"
+                            >
+                              <input
+                                type="text"
+                                placeholder="ex: 2400"
+                                value={item.length ?? ''}
+                                onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
                                 className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
                               />
                             </FillableCell>
@@ -1209,31 +1509,53 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                           {formatFCFA(lineHT, '')}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={items.length === 1}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors disabled:opacity-30 cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              disabled={items.filter((it) => !isSectionItem(it)).length <= 1}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors disabled:opacity-30 cursor-pointer"
+                              title="Supprimer la ligne"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleAddSection(rowIndex + 1)}
+                              className="p-1 text-brand-mid/70 hover:text-brand-ink hover:bg-brand-mist rounded-md cursor-pointer"
+                              title="Insérer un titre sous cette ligne"
+                            >
+                              <Heading2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
-                  })}
+                  });
+                  })()}
                 </tbody>
               </table>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-brand-mid" />
-                <span>Ajouter une ligne</span>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => handleAddItem()}
+                  className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-brand-mid" />
+                  <span>Ajouter une ligne</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddSection()}
+                  className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-brand-mist hover:bg-brand-mist/80 text-brand-ink border border-brand-mid/25 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Heading2 className="w-4 h-4" />
+                  <span>Ajouter un titre / séparateur</span>
+                </button>
+              </div>
 
               <div className="w-full sm:w-auto sm:min-w-[240px] text-right space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div className="flex justify-between text-xs text-slate-600">
