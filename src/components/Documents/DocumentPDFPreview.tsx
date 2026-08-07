@@ -670,8 +670,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 left: `${options.stampPosition.x}%`,
                 top: `${options.stampPosition.y}%`,
                 width: `${options.stampPosition.width || 130}px`,
+                maxWidth: `${options.stampPosition.width || 130}px`,
                 zIndex: 30,
                 touchAction: 'none',
+                overflow: 'hidden',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
                 activeDrag === 'stamp'
@@ -685,7 +687,14 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 alt="Cachet Officiel"
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
-                className="w-full h-auto object-contain pointer-events-none opacity-90"
+                className="w-full h-auto object-contain pointer-events-none opacity-90 mix-blend-multiply"
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
@@ -721,8 +730,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 left: `${options.signaturePosition.x}%`,
                 top: `${options.signaturePosition.y}%`,
                 width: `${options.signaturePosition.width || 140}px`,
+                maxWidth: `${options.signaturePosition.width || 140}px`,
                 zIndex: 35,
                 touchAction: 'none',
+                overflow: 'hidden',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
                 activeDrag === 'signature'
@@ -736,7 +747,14 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 alt="Signature Numérique"
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
-                className="w-full h-auto object-contain pointer-events-none"
+                className="w-full h-auto object-contain pointer-events-none mix-blend-multiply"
+                style={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
               />
 
               {/* Controls popup on hover/drag (hidden during PDF print/download) */}
@@ -779,7 +797,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                       className="object-contain block max-w-full h-auto"
                       style={{
                         width: `${options.logoWidth || 160}px`,
+                        maxWidth: `${options.logoWidth || 160}px`,
                         maxHeight: `${Math.round((options.logoWidth || 160) * 0.75)}px`,
+                        height: 'auto',
+                        display: 'block',
+                        objectFit: 'contain',
                       }}
                       crossOrigin="anonymous"
                       referrerPolicy="no-referrer"

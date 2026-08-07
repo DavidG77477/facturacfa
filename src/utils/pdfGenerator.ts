@@ -96,20 +96,44 @@ function triggerBrowserDownload(blob: Blob, fileName: string): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 2500);
 }
 
-async function fetchAsDataUrl(url: string): Promise<string> {
+/** Redimensionne les assets (logo/cachet ~1536px) avant capture pour éviter OOM / canvas tainted. */
+async function blobToResizedDataUrl(blob: Blob, maxEdge = 520): Promise<string> {
+  const bitmap = await createImageBitmap(blob);
+  try {
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height, 1));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas image indisponible');
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    return canvas.toDataURL('image/png');
+  } finally {
+    bitmap.close();
+  }
+}
+
+async function fetchAsResizedDataUrl(url: string, maxEdge = 520): Promise<string> {
   if (url.startsWith('data:')) return url;
   const response = await fetch(url, { mode: 'cors', credentials: 'omit', cache: 'reload' });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const blob = await response.blob();
-  return await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error('Lecture image impossible'));
-    reader.readAsDataURL(blob);
-  });
+  try {
+    return await blobToResizedDataUrl(blob, maxEdge);
+  } catch {
+    // Fallback sans resize si createImageBitmap échoue
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Lecture image impossible'));
+      reader.readAsDataURL(blob);
+    });
+  }
 }
 
-/** Embarque logo/cachet/signature en data URL pour éviter un canvas « tainted ». */
+/** Embarque logo/cachet/signature en data URL (redimensionnés) pour éviter un canvas « tainted ». */
 async function embedImagesAsDataUrls(root: HTMLElement): Promise<() => void> {
   const images = Array.from(root.querySelectorAll('img'));
   const backups: { img: HTMLImageElement; src: string; crossOrigin: string | null }[] = [];
@@ -124,9 +148,18 @@ async function embedImagesAsDataUrls(root: HTMLElement): Promise<() => void> {
         crossOrigin: img.getAttribute('crossorigin'),
       });
       try {
-        const dataUrl = await fetchAsDataUrl(src);
+        const displayW = Math.max(img.clientWidth || 0, img.getBoundingClientRect().width || 0);
+        const maxEdge = displayW > 0 ? Math.min(720, Math.ceil(displayW * 2.5)) : 520;
+        const dataUrl = await fetchAsResizedDataUrl(src, maxEdge);
         img.removeAttribute('crossorigin');
         img.src = dataUrl;
+        // Verrouille la taille affichée (évite explosion taille native en capture)
+        if (displayW > 0) {
+          img.style.width = `${Math.round(displayW)}px`;
+          img.style.maxWidth = `${Math.round(displayW)}px`;
+          img.style.height = 'auto';
+          img.style.objectFit = 'contain';
+        }
         await new Promise<void>((resolve) => {
           if (img.complete && img.naturalWidth > 0) {
             resolve();
@@ -147,6 +180,121 @@ async function embedImagesAsDataUrls(root: HTMLElement): Promise<() => void> {
       if (crossOrigin) img.setAttribute('crossorigin', crossOrigin);
       else img.removeAttribute('crossorigin');
       img.src = src;
+      img.style.width = '';
+      img.style.maxWidth = '';
+      img.style.height = '';
+      img.style.objectFit = '';
+    });
+  };
+}
+
+/**
+ * Copie les styles calculés en inline avant html2canvas.
+ * Nécessaire en prod : Tailwind v4 (@layer + oklch) n'est pas toujours honoré dans le clone.
+ */
+const CAPTURE_STYLE_PROPS = [
+  'display',
+  'flex-direction',
+  'flex-wrap',
+  'justify-content',
+  'align-items',
+  'align-self',
+  'align-content',
+  'gap',
+  'row-gap',
+  'column-gap',
+  'grid-template-columns',
+  'grid-template-rows',
+  'width',
+  'max-width',
+  'min-width',
+  'height',
+  'max-height',
+  'min-height',
+  'padding-top',
+  'padding-right',
+  'padding-bottom',
+  'padding-left',
+  'margin-top',
+  'margin-right',
+  'margin-bottom',
+  'margin-left',
+  'background-color',
+  'background-image',
+  'color',
+  'border-top-width',
+  'border-right-width',
+  'border-bottom-width',
+  'border-left-width',
+  'border-top-style',
+  'border-right-style',
+  'border-bottom-style',
+  'border-left-style',
+  'border-top-color',
+  'border-right-color',
+  'border-bottom-color',
+  'border-left-color',
+  'border-top-left-radius',
+  'border-top-right-radius',
+  'border-bottom-right-radius',
+  'border-bottom-left-radius',
+  'border-collapse',
+  'border-spacing',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'line-height',
+  'letter-spacing',
+  'text-align',
+  'text-transform',
+  'white-space',
+  'vertical-align',
+  'position',
+  'top',
+  'left',
+  'right',
+  'bottom',
+  'z-index',
+  'overflow',
+  'overflow-x',
+  'overflow-y',
+  'box-sizing',
+  'opacity',
+  'object-fit',
+  'object-position',
+  'table-layout',
+  'mix-blend-mode',
+] as const;
+
+function inlineComputedStylesForCapture(root: HTMLElement): () => void {
+  const nodes = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+  const backups = nodes.map((el) => ({ el, cssText: el.style.cssText }));
+
+  for (const el of nodes) {
+    if (el.classList.contains('no-print') || el.closest('.no-print')) continue;
+    const cs = window.getComputedStyle(el);
+    for (const prop of CAPTURE_STYLE_PROPS) {
+      const val = cs.getPropertyValue(prop);
+      if (val && val !== 'initial') {
+        el.style.setProperty(prop, val);
+      }
+    }
+    if (el instanceof HTMLImageElement) {
+      const w = el.clientWidth || el.getBoundingClientRect().width;
+      const h = el.clientHeight || el.getBoundingClientRect().height;
+      if (w > 0) {
+        el.style.width = `${Math.round(w)}px`;
+        el.style.maxWidth = `${Math.round(w)}px`;
+        if (h > 0) el.style.height = `${Math.round(h)}px`;
+        el.style.objectFit = 'contain';
+      }
+    }
+  }
+
+  return () => {
+    backups.forEach(({ el, cssText }) => {
+      el.style.cssText = cssText;
     });
   };
 }
@@ -216,6 +364,7 @@ function lockA4Layout(element: HTMLElement): () => void {
  * - masque les contrôles .no-print
  * - proportions A4 (pas de bande blanche à droite)
  * - retire filter/drop-shadow
+ * - force les images à leur largeur inline (déjà posée avant capture)
  */
 function prepareCloneForExport(clonedDoc: Document, elementId: string): void {
   clonedDoc.querySelectorAll('.no-print').forEach((el) => {
@@ -234,6 +383,14 @@ function prepareCloneForExport(clonedDoc: Document, elementId: string): void {
         el.removeAttribute('crossorigin');
         el.src = src;
       }
+      // Empêche le rendu à la taille naturelle (1536px) si le CSS du clone est incomplet
+      const lockedW = parseFloat(el.style.width) || 0;
+      if (lockedW > 0) {
+        el.style.width = `${lockedW}px`;
+        el.style.maxWidth = `${lockedW}px`;
+        el.style.height = 'auto';
+        el.style.objectFit = 'contain';
+      }
     }
   });
 
@@ -250,6 +407,8 @@ function prepareCloneForExport(clonedDoc: Document, elementId: string): void {
     root.style.overflow = 'visible';
     root.style.backgroundColor = '#ffffff';
     root.style.margin = '0';
+    root.style.display = root.style.display || 'flex';
+    root.style.flexDirection = root.style.flexDirection || 'column';
   }
 }
 
@@ -826,9 +985,14 @@ async function captureElementCanvas(
   }
 
   const restoreImages = await embedImagesAsDataUrls(element);
+  let restoreStyles: (() => void) | null = null;
   try {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise((r) => setTimeout(r, 40));
+
+    // Après reflow images : figer les styles calculés (Tailwind v4 → RGB/inline)
+    restoreStyles = inlineComputedStylesForCapture(element);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const layout = measurePdfLayoutFromElement(element);
 
@@ -873,6 +1037,7 @@ async function captureElementCanvas(
     const blocks = collectKeepTogetherBlocks(element, canvas.width, canvas.height);
     return { canvas, layout, blocks };
   } finally {
+    restoreStyles?.();
     restoreImages();
   }
 }
@@ -1384,6 +1549,7 @@ export async function downloadPDF(
 
   let restoreLayout: (() => void) | null = null;
   let restoreImages: (() => void) | null = null;
+  let restoreStyles: (() => void) | null = null;
 
   try {
     element.scrollIntoView({ block: 'nearest' });
@@ -1397,6 +1563,9 @@ export async function downloadPDF(
     // Laisser le navigateur recalculer le layout A4
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise((r) => setTimeout(r, 50));
+
+    restoreStyles = inlineComputedStylesForCapture(element);
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
     const width = A4_WIDTH_PX;
     const rootTop = element.getBoundingClientRect().top;
@@ -1450,6 +1619,8 @@ export async function downloadPDF(
       canvas.height
     );
 
+    restoreStyles?.();
+    restoreStyles = null;
     restoreImages?.();
     restoreImages = null;
     restoreLayout?.();
@@ -1485,6 +1656,7 @@ export async function downloadPDF(
     triggerBrowserDownload(pdfBlob, cleanFileName);
     return true;
   } catch (error) {
+    restoreStyles?.();
     restoreImages?.();
     restoreLayout?.();
     console.error('Erreur génération PDF:', error);
