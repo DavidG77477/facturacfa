@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+/* Garantit le scan des sources en build Vercel / CI */
+@source "../index.html";
+@source "./**/*.{js,ts,jsx,tsx}";

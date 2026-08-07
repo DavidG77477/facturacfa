@@ -766,7 +766,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="header"
               data-pdf-module-label="En-tête & infos document"
               data-pdf-keep
-              className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200/80"
+              className="flex flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200/80"
             >
               {/* Emitter Profile */}
               <div className="max-w-[390px] space-y-1.5">
@@ -850,8 +850,8 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               </div>
 
               {/* Document Header Metadata Box */}
-              <div className="w-full sm:w-auto text-right sm:self-start bg-gradient-to-br from-slate-50 via-slate-50/90 to-slate-100/60 p-5 rounded-2xl border border-slate-200/90 shadow-2xs min-w-[250px]">
-                <div className="flex items-center justify-between sm:justify-end gap-2 mb-1">
+              <div className="w-auto text-right self-start bg-gradient-to-br from-slate-50 via-slate-50/90 to-slate-100/60 p-5 rounded-2xl border border-slate-200/90 shadow-2xs min-w-[250px]">
+                <div className="flex items-center justify-end gap-2 mb-1">
                   <span className={`text-2xl font-black uppercase tracking-wider ${isDevis ? 'text-sky-700' : 'text-blue-800'}`}>
                     {isDevis ? 'DEVIS' : 'FACTURE'}
                   </span>
@@ -903,7 +903,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="client"
               data-pdf-module-label="Bloc client"
               data-pdf-keep
-              className={`my-6 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center ${
+              className={`my-6 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-row justify-between gap-4 items-center ${
               isDevis ? 'border-l-4 border-l-sky-600' : 'border-l-4 border-l-blue-700'
             }`}>
               <div className="space-y-1 flex-1">
@@ -928,7 +928,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               </div>
 
               {options.showClientNif && doc.clientInfo.nifRccm && (
-                <div className="text-left sm:text-right bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                <div className="text-right bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
                   <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider block mb-0.5">Identifiant Fiscal Client</span>
                   <p className="font-mono font-bold text-xs text-slate-800">{doc.clientInfo.nifRccm}</p>
                 </div>
@@ -996,7 +996,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="totals"
               data-pdf-module-label="Totaux & paiement"
               data-pdf-keep
-              className={`flex flex-col sm:flex-row gap-6 mb-6 ${options.showPaymentDetails ? 'justify-between items-start' : 'justify-end items-end'}`}
+              className={`flex flex-row gap-6 mb-6 ${options.showPaymentDetails ? 'justify-between items-start' : 'justify-end items-end'}`}
             >
               {/* Optional Payment Details & Bank RIB */}
               {options.showPaymentDetails && (
@@ -1029,7 +1029,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               )}
 
               {/* Totals Summary */}
-              <div className="w-full sm:w-80 bg-slate-50/90 p-4.5 rounded-2xl border border-slate-200/90 space-y-2.5 text-xs shrink-0">
+              <div className="w-80 bg-slate-50/90 p-4.5 rounded-2xl border border-slate-200/90 space-y-2.5 text-xs shrink-0">
                 <div className="flex justify-between text-slate-600">
                   <span className="font-medium">Total HT :</span>
                   <span className="font-mono font-bold text-slate-800">{formatFCFA(totals.totalHT, doc.currency)}</span>
@@ -1080,7 +1080,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 data-pdf-module="notes"
                 data-pdf-module-label="Notes & conditions"
                 data-pdf-keep
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] text-slate-600 border-t border-slate-200/80 pt-4 mb-6"
+                className="grid grid-cols-2 gap-4 text-[11px] text-slate-600 border-t border-slate-200/80 pt-4 mb-6"
               >
                 {doc.notes && (
                   <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/70 space-y-1">
