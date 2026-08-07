@@ -45,6 +45,75 @@ function clearDraft(): void {
   sessionStorage.removeItem(DRAFT_STORAGE_KEY);
 }
 
+/** Champs pouvant être recopiés en tirant la poignée (comme Excel). */
+type FillableField = 'description' | 'length' | 'width' | 'clientPrice' | 'quantity' | 'unitPrice' | 'discount';
+
+interface FillDragState {
+  field: FillableField;
+  startIndex: number;
+  endIndex: number;
+  value: DocumentItem[FillableField];
+}
+
+interface FillableCellProps {
+  field: FillableField;
+  rowIndex: number;
+  value: DocumentItem[FillableField];
+  fillDrag: FillDragState | null;
+  onFillStart: (
+    field: FillableField,
+    rowIndex: number,
+    value: DocumentItem[FillableField],
+    e: React.PointerEvent
+  ) => void;
+  className?: string;
+  children: React.ReactNode;
+}
+
+const FillableCell: React.FC<FillableCellProps> = ({
+  field,
+  rowIndex,
+  value,
+  fillDrag,
+  onFillStart,
+  className = '',
+  children,
+}) => {
+  const inRange =
+    !!fillDrag &&
+    fillDrag.field === field &&
+    rowIndex >= Math.min(fillDrag.startIndex, fillDrag.endIndex) &&
+    rowIndex <= Math.max(fillDrag.startIndex, fillDrag.endIndex);
+  const isOrigin = fillDrag?.field === field && fillDrag.startIndex === rowIndex;
+
+  return (
+    <td
+      className={`${inRange ? 'bg-blue-100/80 ring-1 ring-inset ring-blue-500/60' : ''} ${className}`}
+      data-fill-field={field}
+      data-fill-row={rowIndex}
+    >
+      {/* Input + poignée Excel collée à droite (toujours visible) */}
+      <div className="flex items-end gap-0.5">
+        <div className="min-w-0 flex-1">{children}</div>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Maintenir et tirer pour recopier"
+          title="Maintenir et tirer vers le bas pour recopier (comme Excel)"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onFillStart(field, rowIndex, value, e);
+          }}
+          className={`shrink-0 w-4 h-4 mb-0.5 rounded-[2px] border-2 border-slate-900 bg-blue-500 shadow cursor-crosshair touch-none hover:bg-blue-600 active:bg-blue-700 ${
+            isOrigin ? 'ring-2 ring-blue-300 scale-110 bg-blue-600' : ''
+          }`}
+        />
+      </div>
+    </td>
+  );
+};
+
 interface DocumentEditorProps {
   documentToEdit?: InvoiceDocument | null;
   /** Type demandé pour une création (ignoré en édition) */
@@ -328,6 +397,115 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       })
     );
   };
+
+  const [fillDrag, setFillDrag] = useState<FillDragState | null>(null);
+  const fillDragRef = useRef<FillDragState | null>(null);
+  const fillListenersRef = useRef<{
+    move: (e: PointerEvent) => void;
+    up: (e: PointerEvent) => void;
+  } | null>(null);
+
+  const applyColumnFill = (drag: FillDragState) => {
+    const from = Math.min(drag.startIndex, drag.endIndex);
+    const to = Math.max(drag.startIndex, drag.endIndex);
+    if (from === to) return;
+
+    setItems((prev) =>
+      prev.map((item, idx) => {
+        if (idx < from || idx > to) return item;
+        let nextValue: DocumentItem[FillableField] = drag.value;
+        if (drag.field === 'quantity') {
+          nextValue = Math.max(1, Number(drag.value) || 1);
+        }
+        const updated: DocumentItem = { ...item, [drag.field]: nextValue };
+        if (drag.field === 'length' || drag.field === 'width' || drag.field === 'clientPrice') {
+          const calculatedPrice = computeCalculatedPrice(
+            updated.length,
+            updated.width,
+            updated.clientPrice
+          );
+          if (calculatedPrice !== null) {
+            updated.unitPrice = calculatedPrice;
+          }
+        }
+        return updated;
+      })
+    );
+  };
+
+  const stopFillListeners = () => {
+    if (!fillListenersRef.current) return;
+    window.removeEventListener('pointermove', fillListenersRef.current.move);
+    window.removeEventListener('pointerup', fillListenersRef.current.up);
+    window.removeEventListener('pointercancel', fillListenersRef.current.up);
+    fillListenersRef.current = null;
+  };
+
+  const resolveFillRowIndex = (clientX: number, clientY: number, field: FillableField): number | null => {
+    const el = document.elementFromPoint(clientX, clientY);
+    const cell = el?.closest?.(`[data-fill-field="${field}"]`) as HTMLElement | null;
+    if (cell) {
+      const idx = Number(cell.getAttribute('data-fill-row'));
+      if (!Number.isNaN(idx)) return idx;
+    }
+    // Fallback : trouver la ligne par sa position verticale
+    const rows = Array.from(document.querySelectorAll<HTMLElement>(`[data-fill-field="${field}"]`));
+    for (const rowCell of rows) {
+      const rect = rowCell.getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) {
+        const idx = Number(rowCell.getAttribute('data-fill-row'));
+        if (!Number.isNaN(idx)) return idx;
+      }
+    }
+    return null;
+  };
+
+  const handleFillStart = (
+    field: FillableField,
+    rowIndex: number,
+    value: DocumentItem[FillableField],
+    e: React.PointerEvent
+  ) => {
+    stopFillListeners();
+    const drag: FillDragState = { field, startIndex: rowIndex, endIndex: rowIndex, value };
+    fillDragRef.current = drag;
+    setFillDrag(drag);
+
+    const onMove = (ev: PointerEvent) => {
+      const current = fillDragRef.current;
+      if (!current) return;
+      const idx = resolveFillRowIndex(ev.clientX, ev.clientY, current.field);
+      if (idx === null || current.endIndex === idx) return;
+      const next = { ...current, endIndex: idx };
+      fillDragRef.current = next;
+      setFillDrag(next);
+    };
+
+    const onUp = () => {
+      const current = fillDragRef.current;
+      stopFillListeners();
+      fillDragRef.current = null;
+      setFillDrag(null);
+      if (current) applyColumnFill(current);
+    };
+
+    fillListenersRef.current = { move: onMove, up: onUp };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+
+    // Capture sur window via le target pour ne pas perdre le drag
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    return () => stopFillListeners();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     e?.preventDefault();
@@ -817,132 +995,29 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 </button>
               </div>
 
-              {showDimensions && (
-                <div className="text-[11px] text-blue-800 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200/90 font-medium flex items-center gap-2">
-                  <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded font-bold text-[9px] uppercase tracking-wider">Formule P.U.</span>
-                  <span>Calcul auto : <strong>((Largeur × Hauteur) / 1 000 000) × Prix Client</strong></span>
-                </div>
-              )}
-            </div>
-
-            {/* Mobile: cartes empilées */}
-            <div className="md:hidden space-y-3">
-              {items.map((item, idx) => {
-                const lineHT = item.quantity * item.unitPrice * (1 - (item.discount || 0) / 100);
-                return (
-                  <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                        Ligne {idx + 1}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        disabled={items.length === 1}
-                        className="p-2 text-rose-600 bg-rose-50 rounded-lg disabled:opacity-30 cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-500 mb-1">Description</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Store Vénitien Alu..."
-                        value={item.description}
-                        onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    {showDimensions && (
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Hauteur</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="mm"
-                            value={item.length ?? ''}
-                            onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
-                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Largeur</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="mm"
-                            value={item.width ?? ''}
-                            onChange={(e) => handleItemChange(item.id, 'width', e.target.value)}
-                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-blue-700 mb-1">Prix client</label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="500"
-                            placeholder="FCFA"
-                            value={item.clientPrice ?? ''}
-                            onChange={(e) => handleItemChange(item.id, 'clientPrice', e.target.value === '' ? '' : Number(e.target.value))}
-                            className="w-full px-2 py-2.5 bg-blue-50 border border-blue-300 rounded-xl text-blue-900 font-mono font-extrabold text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div className={`grid gap-2 ${showDiscount ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Qté</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))}
-                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 mb-1">P.U. HT</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="500"
-                          value={item.unitPrice}
-                          onChange={(e) => handleItemChange(item.id, 'unitPrice', Number(e.target.value))}
-                          className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      {showDiscount && (
-                        <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-1">Remise %</label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={item.discount}
-                            onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
-                            className="w-full px-2 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-between items-center pt-1 border-t border-slate-200">
-                      <span className="text-xs font-bold text-slate-500">Total ligne HT</span>
-                      <span className="font-mono font-black text-slate-900 text-sm">{formatFCFA(lineHT, '')}</span>
-                    </div>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-medium">
+                {showDimensions && (
+                  <div className="text-blue-800 bg-blue-50 px-3 py-1 rounded-xl border border-blue-200/90 flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded font-bold text-[9px] uppercase tracking-wider">Formule P.U.</span>
+                    <span>Calcul auto : <strong>((Largeur × Hauteur) / 1 000 000) × Prix Client</strong></span>
                   </div>
-                );
-              })}
+                )}
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <span className="inline-block w-3.5 h-3.5 rounded-[2px] border-2 border-slate-900 bg-blue-500 shrink-0" />
+                  Carré bleu à droite de chaque case → maintenir et tirer pour recopier.
+                </span>
+              </div>
             </div>
 
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            {/* Tableau lignes — toujours visible (scroll horizontal si besoin) pour garder les poignées Excel */}
+            <p className="sm:hidden text-[11px] text-slate-500 font-medium -mt-1 mb-1">
+              Faites glisser horizontalement pour voir toutes les colonnes et les carrés bleus.
+            </p>
+            <div className={`overflow-x-auto overscroll-x-contain rounded-xl border border-slate-200 ${fillDrag ? 'select-none cursor-crosshair' : ''}`}>
+              <table className="w-full min-w-[720px] text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-y border-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                    <th className="py-2.5 px-2 w-10 text-center">#</th>
                     <th className="py-2.5 px-3 min-w-[180px]">Description</th>
                     {showDimensions && (
                       <>
@@ -961,12 +1036,22 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
-                  {items.map((item) => {
+                  {items.map((item, rowIndex) => {
                     const lineHT = item.quantity * item.unitPrice * (1 - (item.discount || 0) / 100);
 
                     return (
-                      <tr key={item.id}>
-                        <td className="py-2.5 px-2">
+                      <tr key={item.id} data-item-row-index={rowIndex}>
+                        <td className="py-2.5 px-2 text-center text-[11px] font-black text-slate-400 tabular-nums">
+                          {rowIndex + 1}
+                        </td>
+                        <FillableCell
+                          field="description"
+                          rowIndex={rowIndex}
+                          value={item.description}
+                          fillDrag={fillDrag}
+                          onFillStart={handleFillStart}
+                          className="py-2.5 px-2"
+                        >
                           <input
                             type="text"
                             required
@@ -975,10 +1060,17 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
                             className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
-                        </td>
+                        </FillableCell>
                         {showDimensions && (
                           <>
-                            <td className="py-2.5 px-1.5">
+                            <FillableCell
+                              field="length"
+                              rowIndex={rowIndex}
+                              value={item.length}
+                              fillDrag={fillDrag}
+                              onFillStart={handleFillStart}
+                              className="py-2.5 px-1.5"
+                            >
                               <input
                                 type="text"
                                 placeholder="ex: 2400"
@@ -986,8 +1078,15 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                 onChange={(e) => handleItemChange(item.id, 'length', e.target.value)}
                                 className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
-                            </td>
-                            <td className="py-2.5 px-1.5">
+                            </FillableCell>
+                            <FillableCell
+                              field="width"
+                              rowIndex={rowIndex}
+                              value={item.width}
+                              fillDrag={fillDrag}
+                              onFillStart={handleFillStart}
+                              className="py-2.5 px-1.5"
+                            >
                               <input
                                 type="text"
                                 placeholder="ex: 1600"
@@ -995,30 +1094,59 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                                 onChange={(e) => handleItemChange(item.id, 'width', e.target.value)}
                                 className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
-                            </td>
-                            <td className="py-2.5 px-1.5 bg-blue-50/30 border-x border-blue-100">
+                            </FillableCell>
+                            <FillableCell
+                              field="clientPrice"
+                              rowIndex={rowIndex}
+                              value={item.clientPrice}
+                              fillDrag={fillDrag}
+                              onFillStart={handleFillStart}
+                              className="py-2.5 px-1.5 bg-blue-50/30 border-x border-blue-100"
+                            >
                               <input
                                 type="number"
                                 min="0"
                                 step="500"
                                 placeholder="ex: 25000"
                                 value={item.clientPrice ?? ''}
-                                onChange={(e) => handleItemChange(item.id, 'clientPrice', e.target.value === '' ? '' : Number(e.target.value))}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    item.id,
+                                    'clientPrice',
+                                    e.target.value === '' ? '' : Number(e.target.value)
+                                  )
+                                }
                                 className="w-full px-2 py-1.5 bg-white border border-blue-300 rounded-lg text-blue-900 font-mono font-extrabold text-xs text-right focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs"
                               />
-                            </td>
+                            </FillableCell>
                           </>
                         )}
-                        <td className="py-2.5 px-1.5">
+                        <FillableCell
+                          field="quantity"
+                          rowIndex={rowIndex}
+                          value={item.quantity}
+                          fillDrag={fillDrag}
+                          onFillStart={handleFillStart}
+                          className="py-2.5 px-1.5"
+                        >
                           <input
                             type="number"
                             min="1"
                             value={item.quantity}
-                            onChange={(e) => handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))}
+                            onChange={(e) =>
+                              handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))
+                            }
                             className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
-                        </td>
-                        <td className="py-2.5 px-2">
+                        </FillableCell>
+                        <FillableCell
+                          field="unitPrice"
+                          rowIndex={rowIndex}
+                          value={item.unitPrice}
+                          fillDrag={fillDrag}
+                          onFillStart={handleFillStart}
+                          className="py-2.5 px-2"
+                        >
                           <input
                             type="number"
                             min="0"
@@ -1027,9 +1155,16 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             onChange={(e) => handleItemChange(item.id, 'unitPrice', Number(e.target.value))}
                             className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
-                        </td>
+                        </FillableCell>
                         {showDiscount && (
-                          <td className="py-2.5 px-1.5">
+                          <FillableCell
+                            field="discount"
+                            rowIndex={rowIndex}
+                            value={item.discount}
+                            fillDrag={fillDrag}
+                            onFillStart={handleFillStart}
+                            className="py-2.5 px-1.5"
+                          >
                             <input
                               type="number"
                               min="0"
@@ -1038,7 +1173,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                               onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
                               className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
-                          </td>
+                          </FillableCell>
                         )}
                         <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-900 text-xs">
                           {formatFCFA(lineHT, '')}
