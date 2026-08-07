@@ -232,16 +232,17 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   const legalFooterBlock = (
     <>
       {(profile.nif || profile.rccm) && (
-        <p className="font-mono font-semibold text-slate-600">
+        <p className="font-mono font-semibold text-slate-600 text-center">
           {[profile.nif && `NIF : ${profile.nif}`, profile.rccm && `RCCM : ${profile.rccm}`]
             .filter(Boolean)
             .join('  ·  ')}
         </p>
       )}
       {profile.legalFooter && (
-        <p className="font-semibold text-slate-500 whitespace-pre-line">{profile.legalFooter}</p>
+        <p className="font-semibold text-slate-500 whitespace-pre-line text-center">
+          {profile.legalFooter}
+        </p>
       )}
-      <p className="text-[9px] text-slate-400">Document généré via FacturaCFA - Application de Facturation</p>
     </>
   );
 
@@ -1205,7 +1206,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 }}
                 aria-hidden
               >
-                <div className="relative text-center text-[10px] text-slate-400 space-y-1 pr-40">
+                <div className="relative text-center text-[10px] text-slate-500 space-y-1 px-36">
                   {legalFooterBlock}
                   <div className="absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
                     {doc.number}  ·  {pageIndex + 1}/{pageCount}
@@ -1220,7 +1221,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             data-pdf-page-footer
             className="mt-auto pt-4 border-t border-slate-200 bg-white"
           >
-            <div className="relative text-center text-[10px] text-slate-400 space-y-1 pr-40">
+            <div className="relative text-center text-[10px] text-slate-500 space-y-1 px-36">
               {legalFooterBlock}
               {/* Pagination aperçu (hors capture footer — le PDF la redessine par page) */}
               <div className="no-print absolute right-0 bottom-0 text-right font-mono text-[10px] font-semibold text-slate-500 whitespace-nowrap">
