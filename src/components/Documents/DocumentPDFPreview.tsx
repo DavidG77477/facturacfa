@@ -966,6 +966,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider">
+                    <th className="py-3 px-2 text-center w-10">N°</th>
                     <th className="py-3 px-4">Désignation / Article</th>
                     {hasDimensions && (
                       <>
@@ -987,6 +988,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
                     return (
                       <tr key={item.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
+                        <td className="py-3 px-2 text-center text-slate-500 font-mono text-[11px] font-bold tabular-nums">
+                          {idx + 1}
+                        </td>
                         <td className="py-3 px-4">
                           <div className="font-semibold text-slate-900 text-xs">{item.description}</div>
                         </td>
