@@ -340,6 +340,28 @@ main [role="button"] {
   main button:not(:disabled):hover {
     transform: none !important;
   }
+
+  .news-marquee {
+    animation: none !important;
+  }
+}
+
+@keyframes news-marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.news-marquee {
+  width: max-content;
+  animation: news-marquee-scroll 45s linear infinite;
+}
+
+.news-marquee:hover {
+  animation-play-state: paused;
 }
 
 @keyframes auth-fade-up {

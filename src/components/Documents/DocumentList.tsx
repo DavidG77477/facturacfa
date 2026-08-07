@@ -7,6 +7,7 @@ import { getStatusInfo, ALL_STATUSES } from '../../utils/status';
 import { formatDateFR, toISODate } from '../../utils/date';
 import { FrenchDateInput } from '../ui/FrenchDateInput';
 import { BamakoWelcome } from '../Dashboard/BamakoWelcome';
+import { NewsCard } from '../Dashboard/NewsCard';
 
 interface DocumentListProps {
   documents: InvoiceDocument[];
@@ -262,6 +263,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   return (
     <div className="space-y-6">
       <BamakoWelcome userName={userName} />
+
+      <NewsCard />
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
