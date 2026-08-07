@@ -5,6 +5,15 @@ const BAMAKO_TZ = 'Africa/Bamako';
 const WEATHER_URL =
   'https://api.open-meteo.com/v1/forecast?latitude=12.6392&longitude=-8.0029&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Africa%2FBamako';
 
+const BAMAKO_SLIDES = [
+  '/mali-bamako.jpg',
+  '/mali-bamako-2.jpg',
+  '/mali-bamako-3.jpg',
+  '/mali-bamako-4.jpg',
+] as const;
+
+const SLIDE_INTERVAL_MS = 5500;
+
 interface WeatherState {
   temp: number;
   humidity: number;
@@ -77,10 +86,25 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState<WeatherState | null>(null);
   const [weatherError, setWeatherError] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setSlideIndex((i) => (i + 1) % BAMAKO_SLIDES.length);
+    }, SLIDE_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    BAMAKO_SLIDES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
   }, []);
 
   useEffect(() => {
@@ -121,16 +145,21 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
       data-bamako-welcome
       className="relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-brand-ink/10 shadow-sm"
     >
-      <img
-        src="/mali-bamako.jpg"
-        alt=""
-        aria-hidden
-        className="absolute inset-0 w-full h-full object-cover object-center"
-      />
+      {BAMAKO_SLIDES.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          aria-hidden
+          className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-[1400ms] ease-in-out ${
+            i === slideIndex ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      ))}
       {/* Couche opaque pour lisibilité */}
       <div
         aria-hidden
-        className="absolute inset-0"
+        className="absolute inset-0 z-[1]"
         style={{
           background:
             'linear-gradient(120deg, rgba(6,46,44,0.88) 0%, rgba(10,61,58,0.78) 45%, rgba(6,46,44,0.72) 100%)',

@@ -22,13 +22,19 @@
 
 @keyframes app-gradient-drift {
   0% {
-    background-position: 0% 35%;
+    background-position: 0% 20%, 100% 80%, 40% 0%, 0% 50%;
+  }
+  25% {
+    background-position: 80% 60%, 20% 10%, 90% 70%, 40% 30%;
   }
   50% {
-    background-position: 100% 65%;
+    background-position: 100% 80%, 0% 40%, 10% 100%, 80% 60%;
+  }
+  75% {
+    background-position: 30% 10%, 70% 90%, 60% 30%, 20% 80%;
   }
   100% {
-    background-position: 0% 35%;
+    background-position: 0% 20%, 100% 80%, 40% 0%, 0% 50%;
   }
 }
 
@@ -41,15 +47,15 @@
     color: #1e293b;
     -webkit-font-smoothing: antialiased;
     min-height: 100%;
-    background-color: #e7f0ee;
+    background-color: #0a3d3a;
     background-image:
-      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(45, 212, 191, 0.28), transparent 55%),
-      radial-gradient(ellipse 70% 55% at 85% 15%, rgba(20, 122, 114, 0.18), transparent 50%),
-      radial-gradient(ellipse 65% 50% at 70% 85%, rgba(232, 196, 140, 0.22), transparent 55%),
-      linear-gradient(135deg, #eaf5f2 0%, #d9ebe7 35%, #eef3ef 65%, #dceee9 100%);
-    background-size: 220% 220%, 240% 240%, 200% 200%, 300% 300%;
+      radial-gradient(ellipse 75% 55% at 12% 18%, rgba(56, 189, 248, 0.45), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 88% 22%, rgba(125, 211, 252, 0.35), transparent 50%),
+      radial-gradient(ellipse 60% 45% at 75% 88%, rgba(6, 78, 59, 0.7), transparent 55%),
+      linear-gradient(135deg, #062e2c 0%, #0a4a3f 28%, #0e7490 62%, #38bdf8 100%);
+    background-size: 280% 280%, 300% 300%, 260% 260%, 340% 340%;
     background-attachment: fixed;
-    animation: app-gradient-drift 22s ease-in-out infinite;
+    animation: app-gradient-drift 14s ease-in-out infinite;
   }
 
   html.dark {
@@ -64,15 +70,15 @@
 
   html.dark body {
     color: #e2e8f0;
-    background-color: #0b1413;
+    background-color: #041f1d;
     background-image:
-      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(45, 212, 191, 0.16), transparent 55%),
-      radial-gradient(ellipse 70% 55% at 90% 25%, rgba(26, 154, 143, 0.14), transparent 50%),
-      radial-gradient(ellipse 60% 50% at 60% 90%, rgba(15, 79, 74, 0.45), transparent 55%),
-      linear-gradient(145deg, #0b1413 0%, #122826 40%, #0e1c1a 70%, #152422 100%);
-    background-size: 220% 220%, 240% 240%, 200% 200%, 300% 300%;
+      radial-gradient(ellipse 75% 55% at 15% 15%, rgba(56, 189, 248, 0.28), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 20%, rgba(14, 116, 144, 0.35), transparent 50%),
+      radial-gradient(ellipse 60% 45% at 70% 90%, rgba(4, 47, 46, 0.85), transparent 55%),
+      linear-gradient(145deg, #041f1d 0%, #064e3b 32%, #0c4a6e 68%, #0284c7 100%);
+    background-size: 280% 280%, 300% 300%, 260% 260%, 340% 340%;
     background-attachment: fixed;
-    animation: app-gradient-drift 26s ease-in-out infinite;
+    animation: app-gradient-drift 16s ease-in-out infinite;
   }
 }
 
