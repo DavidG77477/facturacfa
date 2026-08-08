@@ -83,7 +83,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     showDiscount: doc.previewOptions?.showDiscount ?? true,
     stampPosition: doc.previewOptions?.stampPosition ?? { x: 55, y: 81, width: 130 },
     signaturePosition: doc.previewOptions?.signaturePosition ?? { x: 72, y: 83, width: 140 },
-    logoWidth: doc.previewOptions?.logoWidth ?? 160,
+    logoWidth: doc.previewOptions?.logoWidth ?? 120,
     pageBreakAfterModules: doc.previewOptions?.pageBreakAfterModules ?? [],
     pullToPreviousPageModules: doc.previewOptions?.pullToPreviousPageModules ?? [],
     hiddenPdfPageStarts: doc.previewOptions?.hiddenPdfPageStarts ?? [],
@@ -115,7 +115,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       showDiscount: doc.previewOptions?.showDiscount ?? prev.showDiscount,
       stampPosition: doc.previewOptions?.stampPosition ?? prev.stampPosition,
       signaturePosition: doc.previewOptions?.signaturePosition ?? prev.signaturePosition,
-      logoWidth: doc.previewOptions?.logoWidth ?? prev.logoWidth ?? 160,
+      logoWidth: doc.previewOptions?.logoWidth ?? prev.logoWidth ?? 120,
       pageBreakAfterModules:
         doc.previewOptions?.pageBreakAfterModules ?? prev.pageBreakAfterModules ?? [],
       pullToPreviousPageModules:
@@ -196,7 +196,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
   const handleWidthChange = (type: 'stamp' | 'signature' | 'logo', delta: number) => {
     if (type === 'logo') {
-      const currentW = options.logoWidth || 160;
+      const currentW = options.logoWidth || 120;
       const newW = Math.max(60, Math.min(360, currentW + delta));
       const updated = { ...options, logoWidth: newW };
       setOptions(updated);
@@ -586,7 +586,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 >
                   -
                 </button>
-                <span className="font-mono text-blue-900 min-w-[3.5rem] text-center">{options.logoWidth || 160}px</span>
+                <span className="font-mono text-blue-900 min-w-[3.5rem] text-center">{options.logoWidth || 120}px</span>
                 <button
                   type="button"
                   onClick={() => handleWidthChange('logo', 20)}
@@ -817,21 +817,21 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="header"
               data-pdf-module-label="En-tête & infos document"
               data-pdf-keep
-              className="flex flex-row justify-between items-start gap-6 pb-6 border-b border-slate-200/80"
+              className="flex flex-row justify-between items-start gap-3 pb-2.5 border-b border-slate-200/80"
             >
               {/* Emitter Profile */}
-              <div className="max-w-[390px] space-y-1.5">
+              <div className="max-w-[280px] space-y-0.5">
                 {profile.logoUrl && !imgError && (
-                  <div className="group relative inline-block mb-3 max-w-full">
+                  <div className="group relative inline-block mb-1 max-w-full">
                     <img
                       src={profile.logoUrl}
                       alt="Logo"
                       onError={() => setImgError(true)}
                       className="object-contain block max-w-full h-auto"
                       style={{
-                        width: `${options.logoWidth || 160}px`,
-                        maxWidth: `${options.logoWidth || 160}px`,
-                        maxHeight: `${Math.round((options.logoWidth || 160) * 0.75)}px`,
+                        width: `${options.logoWidth || 120}px`,
+                        maxWidth: `${options.logoWidth || 120}px`,
+                        maxHeight: `${Math.round((options.logoWidth || 120) * 0.7)}px`,
                         height: 'auto',
                         display: 'block',
                         objectFit: 'contain',
@@ -863,25 +863,25 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   </div>
                 )}
 
-                {profile.tagline && <p className="text-[11px] text-slate-500 italic font-medium">{profile.tagline}</p>}
+                {profile.tagline && <p className="text-[10px] text-slate-500 italic font-medium leading-tight">{profile.tagline}</p>}
 
-                <div className="text-[11px] text-slate-600 space-y-1 pt-1">
+                <div className="text-[10px] text-slate-600 space-y-0.5 pt-0.5 leading-snug">
                   {profile.address && (
-                    <p className="flex items-start gap-1.5 leading-snug">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                    <p className="flex items-start gap-1 leading-snug">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
                       <span>{profile.address}{profile.city ? `, ${profile.city}` : ''}{profile.country ? `, ${profile.country}` : ''}</span>
                     </p>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-slate-600 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0 text-slate-600">
                     {profile.phone && (
                       <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                         <span className="font-semibold text-slate-700">{profile.phone}</span>
                       </span>
                     )}
                     {profile.email && (
                       <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Mail className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                         <span>{profile.email}</span>
                       </span>
                     )}
@@ -891,18 +891,18 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               </div>
 
               {/* Document Header Metadata Box */}
-              <div className="w-auto text-right self-start bg-gradient-to-br from-slate-50 via-slate-50/90 to-slate-100/60 p-5 rounded-2xl border border-slate-200/90 shadow-2xs min-w-[250px]">
-                <div className="flex items-center justify-end gap-2 mb-1">
-                  <span className={`text-2xl font-black uppercase tracking-wider ${isDevis ? 'text-sky-700' : 'text-blue-800'}`}>
+              <div className="w-auto max-w-[200px] text-right self-start bg-gradient-to-br from-slate-50 via-slate-50/90 to-slate-100/60 px-2.5 py-2 rounded-lg border border-slate-200/90 shadow-2xs">
+                <div className="flex items-center justify-end mb-0.5">
+                  <span className={`text-base font-black uppercase tracking-wide leading-none ${isDevis ? 'text-sky-700' : 'text-blue-800'}`}>
                     {isDevis ? 'DEVIS' : 'FACTURE'}
                   </span>
                 </div>
-                <div className="text-base font-mono font-black text-slate-900 tracking-tight mb-2 bg-white px-2.5 py-1 rounded-xl border border-slate-200/80 inline-block shadow-2xs">
+                <div className="text-xs font-mono font-black text-slate-900 tracking-tight mb-1 bg-white px-1.5 py-0.5 rounded-md border border-slate-200/80 inline-block">
                   N° {doc.number}
                 </div>
                 {isDevis ? (
                   doc.convertedFactureNumber && (
-                    <div className="mb-2.5 text-[10px] font-bold text-blue-800 bg-blue-50 border border-blue-200/90 px-2 py-0.5 rounded-lg inline-block font-mono">
+                    <div className="mb-1 text-[9px] font-bold text-blue-800 bg-blue-50 border border-blue-200/90 px-1.5 py-0.5 rounded inline-block font-mono leading-tight">
                       Facture rattachée n° {doc.convertedFactureNumber}
                     </div>
                   )
@@ -911,25 +911,25 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     const refDevis = doc.sourceDevisNumber || (doc.notes?.match(/devis\s*(?:n[°o]?\s*)?([A-Za-z0-9_-]+)/i)?.[1]);
                     if (!refDevis) return null;
                     return (
-                      <div className="mb-2.5 text-[10px] font-bold text-purple-800 bg-purple-50 border border-purple-200/90 px-2 py-0.5 rounded-lg inline-block font-mono">
+                      <div className="mb-1 text-[9px] font-bold text-purple-800 bg-purple-50 border border-purple-200/90 px-1.5 py-0.5 rounded inline-block font-mono leading-tight">
                         Issu du devis n° {refDevis}
                       </div>
                     );
                   })()
                 )}
 
-                <div className="space-y-1.5 text-[11px] text-slate-600 border-t border-slate-200/80 pt-2.5">
-                  <div className="flex justify-between items-center gap-4">
-                    <span className="text-slate-500 font-medium flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
+                <div className="space-y-0.5 text-[10px] text-slate-600 border-t border-slate-200/80 pt-1.5">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-slate-500 font-medium flex items-center gap-0.5">
+                      <Calendar className="w-2.5 h-2.5 text-slate-400" />
                       <span>Émission :</span>
                     </span>
                     <span className="font-bold text-slate-900 font-mono">{formatDateFR(doc.date)}</span>
                   </div>
                   {!isDevis && (
-                    <div className="flex justify-between items-center gap-4">
-                      <span className="text-slate-500 font-medium flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-slate-400" />
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-slate-500 font-medium flex items-center gap-0.5">
+                        <Calendar className="w-2.5 h-2.5 text-slate-400" />
                         <span>Échéance :</span>
                       </span>
                       <span className="font-bold text-slate-900 font-mono">{formatDateFR(doc.dueDate)}</span>
