@@ -70,6 +70,8 @@ export interface ElementPosition {
   y: number; // Position Y relative en %
   width?: number; // Largeur en px
   height?: number; // Hauteur en px
+  /** Rotation en degrés (sens horaire) */
+  rotation?: number;
 }
 
 export interface DocumentPreviewOptions {

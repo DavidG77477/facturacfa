@@ -28,6 +28,8 @@ import {
   Ruler,
   Percent,
   Image as ImageIcon,
+  RotateCcw,
+  RotateCw,
 } from 'lucide-react';
 import { BusinessProfile, InvoiceDocument, DocumentPreviewOptions, isSectionItem } from '../../types';
 import { formatFCFA, calculateDocumentTotals, numberToWordsFR } from '../../utils/currency';
@@ -66,7 +68,24 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
   const [imgError, setImgError] = React.useState(false);
 
   const [activeDrag, setActiveDrag] = React.useState<'stamp' | 'signature' | null>(null);
+  const [activeRotate, setActiveRotate] = React.useState<'stamp' | 'signature' | null>(null);
   const [dragOffset, setDragOffset] = React.useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const activePointersRef = React.useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRotateRef = React.useRef<{
+    type: 'stamp' | 'signature';
+    startAngle: number;
+    startRotation: number;
+  } | null>(null);
+
+  const normalizeRotation = (deg: number) => {
+    const n = ((Math.round(deg) % 360) + 360) % 360;
+    return n > 180 ? n - 360 : n;
+  };
+
+  const angleBetweenPointers = (
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+  ) => (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
 
   // Custom Preview Options state with defaults
   const [options, setOptions] = React.useState<Required<DocumentPreviewOptions>>({
@@ -134,12 +153,46 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     }
   };
 
+  const persistOverlayPosition = (
+    type: 'stamp' | 'signature',
+    patch: Partial<{ x: number; y: number; width: number; rotation: number }>,
+  ) => {
+    const key = type === 'stamp' ? 'stampPosition' : 'signaturePosition';
+    const updatedPos = { ...optionsRef.current[key], ...patch };
+    const updatedOpts = { ...optionsRef.current, [key]: updatedPos };
+    optionsRef.current = updatedOpts;
+    setOptions(updatedOpts);
+  };
+
   const handlePointerDown = (type: 'stamp' | 'signature', e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
     e.preventDefault();
     if (!paperRef.current) return;
-    const rect = paperRef.current.getBoundingClientRect();
-    const currentPos = type === 'stamp' ? options.stampPosition : options.signaturePosition;
 
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+
+    const pointers = [...activePointersRef.current.values()];
+    if (pointers.length >= 2) {
+      // Deux doigts : rotation (tactile)
+      setActiveDrag(null);
+      const startAngle = angleBetweenPointers(pointers[0], pointers[1]);
+      const currentPos = type === 'stamp' ? optionsRef.current.stampPosition : optionsRef.current.signaturePosition;
+      pinchRotateRef.current = {
+        type,
+        startAngle,
+        startRotation: currentPos.rotation || 0,
+      };
+      setActiveRotate(type);
+      return;
+    }
+
+    const rect = paperRef.current.getBoundingClientRect();
+    const currentPos = type === 'stamp' ? optionsRef.current.stampPosition : optionsRef.current.signaturePosition;
     const elemLeftPx = rect.left + (currentPos.x / 100) * rect.width;
     const elemTopPx = rect.top + (currentPos.y / 100) * rect.height;
 
@@ -148,11 +201,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       y: e.clientY - elemTopPx,
     });
     setActiveDrag(type);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    setActiveRotate(null);
+    pinchRotateRef.current = null;
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!activeDrag || !paperRef.current) return;
+    if (!paperRef.current) return;
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    const pointers = [...activePointersRef.current.values()];
+    if (pointers.length >= 2 && pinchRotateRef.current) {
+      const currentAngle = angleBetweenPointers(pointers[0], pointers[1]);
+      const { type, startAngle, startRotation } = pinchRotateRef.current;
+      const next = normalizeRotation(startRotation + (currentAngle - startAngle));
+      persistOverlayPosition(type, { rotation: next });
+      return;
+    }
+
+    if (!activeDrag) return;
     const rect = paperRef.current.getBoundingClientRect();
 
     let newX = ((e.clientX - dragOffset.x - rect.left) / rect.width) * 100;
@@ -161,33 +229,30 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     newX = Math.max(0, Math.min(84, newX));
     newY = Math.max(0, Math.min(92, newY));
 
-    if (activeDrag === 'stamp') {
-      const updatedPos = {
-        ...optionsRef.current.stampPosition,
-        x: Math.round(newX * 10) / 10,
-        y: Math.round(newY * 10) / 10,
-      };
-      const updatedOpts = { ...optionsRef.current, stampPosition: updatedPos };
-      optionsRef.current = updatedOpts;
-      setOptions(updatedOpts);
-    } else {
-      const updatedPos = {
-        ...optionsRef.current.signaturePosition,
-        x: Math.round(newX * 10) / 10,
-        y: Math.round(newY * 10) / 10,
-      };
-      const updatedOpts = { ...optionsRef.current, signaturePosition: updatedPos };
-      optionsRef.current = updatedOpts;
-      setOptions(updatedOpts);
-    }
+    persistOverlayPosition(activeDrag, {
+      x: Math.round(newX * 10) / 10,
+      y: Math.round(newY * 10) / 10,
+    });
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (activeDrag) {
-      if (e.target && (e.target as HTMLElement).hasPointerCapture(e.pointerId)) {
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    activePointersRef.current.delete(e.pointerId);
+    try {
+      if ((e.currentTarget as HTMLElement).hasPointerCapture?.(e.pointerId)) {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
       }
+    } catch {
+      /* ignore */
+    }
+
+    if (activePointersRef.current.size < 2) {
+      pinchRotateRef.current = null;
+      setActiveRotate(null);
+    }
+
+    if (activePointersRef.current.size === 0 && (activeDrag || activeRotate)) {
       setActiveDrag(null);
+      setActiveRotate(null);
       if (onUpdatePreviewOptions) {
         onUpdatePreviewOptions(optionsRef.current);
       }
@@ -207,15 +272,40 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       const currentW = options.stampPosition.width || 130;
       const newW = Math.max(70, Math.min(250, currentW + delta));
       const updated = { ...options, stampPosition: { ...options.stampPosition, width: newW } };
+      optionsRef.current = updated;
       setOptions(updated);
       if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
     } else {
       const currentW = options.signaturePosition.width || 140;
       const newW = Math.max(70, Math.min(250, currentW + delta));
       const updated = { ...options, signaturePosition: { ...options.signaturePosition, width: newW } };
+      optionsRef.current = updated;
       setOptions(updated);
       if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
     }
+  };
+
+  const handleRotationChange = (type: 'stamp' | 'signature', delta: number) => {
+    const key = type === 'stamp' ? 'stampPosition' : 'signaturePosition';
+    const current = optionsRef.current[key].rotation || 0;
+    const updated = {
+      ...optionsRef.current,
+      [key]: { ...optionsRef.current[key], rotation: normalizeRotation(current + delta) },
+    };
+    optionsRef.current = updated;
+    setOptions(updated);
+    if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
+  };
+
+  const handleRotationReset = (type: 'stamp' | 'signature') => {
+    const key = type === 'stamp' ? 'stampPosition' : 'signaturePosition';
+    const updated = {
+      ...optionsRef.current,
+      [key]: { ...optionsRef.current[key], rotation: 0 },
+    };
+    optionsRef.current = updated;
+    setOptions(updated);
+    if (onUpdatePreviewOptions) onUpdatePreviewOptions(updated);
   };
 
   const totals = calculateDocumentTotals(doc.items, doc.taxRate);
@@ -675,13 +765,14 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           }`}
           style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
         >
-          {/* Draggable Stamp Overlay */}
+          {/* Draggable / rotatable Stamp Overlay */}
           {options.showStamp && profile.stampUrl && (
             <div
               data-pdf-keep
               onPointerDown={(e) => handlePointerDown('stamp', e)}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
               style={{
                 position: 'absolute',
                 left: `${options.stampPosition.x}%`,
@@ -693,11 +784,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 overflow: 'visible',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
-                activeDrag === 'stamp'
+                activeDrag === 'stamp' || activeRotate === 'stamp'
                   ? 'ring-2 ring-indigo-500 bg-indigo-50/30 shadow-lg'
                   : 'hover:ring-2 hover:ring-indigo-400/80 hover:bg-indigo-50/10'
               }`}
-              title="Glissez pour déplacer le cachet sur le document"
+              title="1 doigt : déplacer · 2 doigts : pivoter · boutons : taille / rotation"
             >
               <img
                 src={profile.stampUrl}
@@ -711,45 +802,81 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   height: 'auto',
                   display: 'block',
                   objectFit: 'contain',
+                  transform: `rotate(${options.stampPosition.rotation || 0}deg)`,
+                  transformOrigin: 'center center',
                 }}
               />
 
-              {/* Controls popup on hover/drag (hidden during PDF print/download) */}
+              {/* Controls — always visible on touch; hover on desktop */}
               <div
-                className={`no-print transition-opacity absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40 ${
-                  activeDrag === 'stamp'
+                className={`no-print transition-opacity absolute -top-14 sm:-top-11 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2 py-1.5 rounded-xl shadow-lg flex flex-wrap items-center justify-center gap-1 max-w-[260px] pointer-events-auto z-40 ${
+                  activeDrag === 'stamp' || activeRotate === 'stamp'
                     ? 'opacity-100'
                     : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
                 }`}
               >
-                <Move className="w-3 h-3 text-amber-400" />
-                <span>Cachet</span>
-                <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
+                <Move className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="pr-0.5">Cachet</span>
+                <div className="h-4 w-px bg-slate-700 mx-0.5" />
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', -10); }}
-                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center font-black text-base sm:text-sm cursor-pointer text-slate-200 touch-manipulation"
                   title="Réduire taille"
+                  aria-label="Réduire le cachet"
                 >-</button>
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('stamp', 10); }}
-                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center font-black text-base sm:text-sm cursor-pointer text-slate-200 touch-manipulation"
                   title="Agrandir taille"
+                  aria-label="Agrandir le cachet"
                 >+</button>
+                <div className="h-4 w-px bg-slate-700 mx-0.5" />
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationChange('stamp', -15); }}
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-slate-200 touch-manipulation"
+                  title="Pivoter −15°"
+                  aria-label="Pivoter le cachet à gauche"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationReset('stamp'); }}
+                  className="min-w-10 min-h-9 sm:min-w-8 sm:min-h-7 px-1.5 h-9 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-amber-300 font-mono text-[11px] touch-manipulation"
+                  title="Réinitialiser la rotation"
+                  aria-label="Réinitialiser la rotation du cachet"
+                >
+                  {options.stampPosition.rotation || 0}°
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationChange('stamp', 15); }}
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-slate-200 touch-manipulation"
+                  title="Pivoter +15°"
+                  aria-label="Pivoter le cachet à droite"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
               </div>
             </div>
           )}
 
-          {/* Draggable Signature Overlay */}
+          {/* Draggable / rotatable Signature Overlay */}
           {options.showSignature && profile.signatureUrl && (
             <div
               data-pdf-keep
               onPointerDown={(e) => handlePointerDown('signature', e)}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
               style={{
                 position: 'absolute',
                 left: `${options.signaturePosition.x}%`,
@@ -761,11 +888,11 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 overflow: 'visible',
               }}
               className={`group select-none cursor-grab active:cursor-grabbing rounded-xl p-1 transition-shadow ${
-                activeDrag === 'signature'
+                activeDrag === 'signature' || activeRotate === 'signature'
                   ? 'ring-2 ring-blue-500 bg-blue-50/30 shadow-lg'
                   : 'hover:ring-2 hover:ring-blue-400/80 hover:bg-blue-50/10'
               }`}
-              title="Glissez pour déplacer la signature sur le document"
+              title="1 doigt : déplacer · 2 doigts : pivoter · boutons : taille / rotation"
             >
               <img
                 src={profile.signatureUrl}
@@ -779,34 +906,68 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   height: 'auto',
                   display: 'block',
                   objectFit: 'contain',
+                  transform: `rotate(${options.signaturePosition.rotation || 0}deg)`,
+                  transformOrigin: 'center center',
                 }}
               />
 
-              {/* Controls popup on hover/drag (hidden during PDF print/download) */}
               <div
-                className={`no-print transition-opacity absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1.5 whitespace-nowrap pointer-events-auto z-40 ${
-                  activeDrag === 'signature'
+                className={`no-print transition-opacity absolute -top-14 sm:-top-11 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[10px] font-bold px-2 py-1.5 rounded-xl shadow-lg flex flex-wrap items-center justify-center gap-1 max-w-[260px] pointer-events-auto z-40 ${
+                  activeDrag === 'signature' || activeRotate === 'signature'
                     ? 'opacity-100'
                     : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
                 }`}
               >
-                <Move className="w-3 h-3 text-blue-400" />
-                <span>Signature</span>
-                <div className="h-3 w-px bg-slate-700 mx-0.5"></div>
+                <Move className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <span className="pr-0.5">Signature</span>
+                <div className="h-4 w-px bg-slate-700 mx-0.5" />
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', -10); }}
-                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center font-black text-base sm:text-sm cursor-pointer text-slate-200 touch-manipulation"
                   title="Réduire taille"
+                  aria-label="Réduire la signature"
                 >-</button>
                 <button
                   type="button"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); handleWidthChange('signature', 10); }}
-                  className="w-7 h-7 sm:w-5 sm:h-5 bg-slate-800 hover:bg-slate-700 rounded-md flex items-center justify-center font-black text-sm cursor-pointer text-slate-200"
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center font-black text-base sm:text-sm cursor-pointer text-slate-200 touch-manipulation"
                   title="Agrandir taille"
+                  aria-label="Agrandir la signature"
                 >+</button>
+                <div className="h-4 w-px bg-slate-700 mx-0.5" />
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationChange('signature', -15); }}
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-slate-200 touch-manipulation"
+                  title="Pivoter −15°"
+                  aria-label="Pivoter la signature à gauche"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationReset('signature'); }}
+                  className="min-w-10 min-h-9 sm:min-w-8 sm:min-h-7 px-1.5 h-9 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-blue-300 font-mono text-[11px] touch-manipulation"
+                  title="Réinitialiser la rotation"
+                  aria-label="Réinitialiser la rotation de la signature"
+                >
+                  {options.signaturePosition.rotation || 0}°
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => { e.stopPropagation(); handleRotationChange('signature', 15); }}
+                  className="min-w-9 min-h-9 sm:min-w-7 sm:min-h-7 w-9 h-9 sm:w-7 sm:h-7 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-lg flex items-center justify-center cursor-pointer text-slate-200 touch-manipulation"
+                  title="Pivoter +15°"
+                  aria-label="Pivoter la signature à droite"
+                >
+                  <RotateCw className="w-4 h-4" />
+                </button>
               </div>
             </div>
           )}
