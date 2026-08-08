@@ -177,7 +177,7 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
   return (
     <section
       data-bamako-welcome
-      className="hover-glow relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[200px] sm:min-h-[220px] border border-white/20 shadow-[0_18px_40px_rgba(6,46,44,0.18)]"
+      className="hover-glow relative overflow-hidden rounded-2xl sm:rounded-3xl min-h-[280px] sm:min-h-[340px] lg:min-h-[380px] border border-white/20 shadow-[0_18px_40px_rgba(6,46,44,0.18)]"
     >
       {BAMAKO_SLIDES.map((src, i) => (
         <img
@@ -200,39 +200,39 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
         }}
       />
 
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 p-5 sm:p-7 text-brand-paper">
-        <div className="space-y-2 min-w-0">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-glow/90">
-            <MapPin className="w-3.5 h-3.5" />
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 sm:gap-8 p-6 sm:p-9 lg:p-11 min-h-[280px] sm:min-h-[340px] lg:min-h-[380px] text-brand-paper">
+        <div className="space-y-3 min-w-0">
+          <div className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-wider text-brand-glow/90">
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Bamako, Mali</span>
           </div>
-          <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
             {greeting}
             {firstName ? `, ${firstName}` : ''}
           </h2>
-          <p className="text-sm text-brand-sand capitalize">{day}</p>
+          <p className="text-base sm:text-lg text-brand-sand capitalize">{day}</p>
         </div>
 
         <div className="flex flex-wrap items-stretch gap-3 sm:gap-4">
-          <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm px-4 py-3 min-w-[140px]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-brand-sand/70 mb-1">Heure locale</p>
-            <p className="kpi-figure text-2xl sm:text-3xl text-brand-paper tabular-nums leading-none">{time}</p>
-            <p className="text-[11px] text-brand-sand/65 mt-1.5">GMT · Africa/Bamako</p>
+          <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm px-5 py-4 min-w-[160px] sm:min-w-[180px]">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-sand/70 mb-1.5">Heure locale</p>
+            <p className="kpi-figure text-3xl sm:text-4xl text-brand-paper tabular-nums leading-none">{time}</p>
+            <p className="text-xs text-brand-sand/65 mt-2">GMT · Africa/Bamako</p>
           </div>
 
-          <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm px-4 py-3 min-w-[160px]">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-brand-sand/70 mb-1">Météo</p>
+          <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm px-5 py-4 min-w-[170px] sm:min-w-[190px]">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-sand/70 mb-1.5">Météo</p>
             {weather ? (
               <>
-                <div className="flex items-center gap-2">
-                  <WeatherIcon code={weather.code} className="w-6 h-6 text-brand-glow shrink-0" />
-                  <p className="kpi-figure text-2xl sm:text-3xl text-brand-paper leading-none">
+                <div className="flex items-center gap-2.5">
+                  <WeatherIcon code={weather.code} className="w-7 h-7 sm:w-8 sm:h-8 text-brand-glow shrink-0" />
+                  <p className="kpi-figure text-3xl sm:text-4xl text-brand-paper leading-none">
                     {Math.round(weather.temp)}°C
                   </p>
                 </div>
-                <p className="text-[11px] text-brand-sand/80 mt-1.5">{weatherLabel(weather.code)}</p>
-                <p className="text-[10px] text-brand-sand/55 mt-0.5 flex items-center gap-1">
-                  <Wind className="w-3 h-3" />
+                <p className="text-xs sm:text-sm text-brand-sand/80 mt-2">{weatherLabel(weather.code)}</p>
+                <p className="text-[11px] text-brand-sand/55 mt-1 flex items-center gap-1">
+                  <Wind className="w-3.5 h-3.5" />
                   {Math.round(weather.wind)} km/h · Hum. {weather.humidity}%
                 </p>
               </>
