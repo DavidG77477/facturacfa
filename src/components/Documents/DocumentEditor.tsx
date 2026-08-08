@@ -124,6 +124,7 @@ function parseEditableNumber(raw: string): number | '' {
 
 /** Colonnes du tableau articles — largeurs redimensionnables */
 type EditorColKey =
+  | 'select'
   | 'index'
   | 'description'
   | 'dimWidth'
@@ -138,6 +139,7 @@ type EditorColKey =
 const EDITOR_COL_STORAGE_KEY = 'facturacfa_editor_col_widths_v1';
 
 const DEFAULT_EDITOR_COL_WIDTHS: Record<EditorColKey, number> = {
+  select: 44,
   index: 44,
   description: 220,
   dimWidth: 112,
@@ -151,6 +153,7 @@ const DEFAULT_EDITOR_COL_WIDTHS: Record<EditorColKey, number> = {
 };
 
 const MIN_EDITOR_COL_WIDTHS: Record<EditorColKey, number> = {
+  select: 40,
   index: 36,
   description: 120,
   dimWidth: 72,
@@ -385,6 +388,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   };
 
   const tableMinWidth =
+    colWidths.select +
     colWidths.index +
     colWidths.description +
     (showDimensions
@@ -395,6 +399,18 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     (showDiscount ? colWidths.discount : 0) +
     colWidths.total +
     colWidths.actions;
+
+  const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(() => new Set());
+
+  // Nettoyer la sélection si des lignes disparaissent
+  useEffect(() => {
+    setSelectedRowIds((prev) => {
+      if (prev.size === 0) return prev;
+      const alive = new Set(items.map((it) => it.id));
+      const next = new Set([...prev].filter((id) => alive.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [items]);
 
   // Uniqueness check for document number
   const isNumberUnique = isDocumentNumberUnique(number, documentToEdit?.id || docId, existingDocuments);
@@ -560,6 +576,27 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     (showDiscount ? 1 : 0) +
     1; // total HT
 
+  const toggleRowSelected = (id: string) => {
+    setSelectedRowIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const allRowIds = items.map((it) => it.id);
+  const allSelected = allRowIds.length > 0 && allRowIds.every((id) => selectedRowIds.has(id));
+  const someSelected = selectedRowIds.size > 0;
+
+  const toggleSelectAllRows = () => {
+    if (allSelected) {
+      setSelectedRowIds(new Set());
+      return;
+    }
+    setSelectedRowIds(new Set(allRowIds));
+  };
+
   const handleRemoveItem = (id: string) => {
     if (items.length === 1) return;
     const target = items.find((it) => it.id === id);
@@ -569,6 +606,31 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       return;
     }
     setItems((prev) => prev.filter((item) => item.id !== id));
+    setSelectedRowIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
+  const handleRemoveSelectedRows = () => {
+    if (selectedRowIds.size === 0) return;
+    const billableCount = items.filter((it) => !isSectionItem(it)).length;
+    const selectedBillableCount = items.filter(
+      (it) => selectedRowIds.has(it.id) && !isSectionItem(it),
+    ).length;
+
+    const idsToRemove = new Set(selectedRowIds);
+    // Toujours garder au moins une ligne facturable
+    if (selectedBillableCount >= billableCount) {
+      const keep = items.find((it) => !isSectionItem(it) && selectedRowIds.has(it.id));
+      if (keep) idsToRemove.delete(keep.id);
+    }
+    if (idsToRemove.size === 0) return;
+
+    setItems((prev) => prev.filter((it) => !idsToRemove.has(it.id)));
+    setSelectedRowIds(new Set());
   };
 
   const handleItemChange = (id: string, field: keyof DocumentItem, value: any) => {
@@ -939,9 +1001,10 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                         setNotes((prev) => (prev ? `${mentionDevis}\n${prev}` : mentionDevis));
                       }
                     }}
-                    className="mt-2 w-full py-1.5 px-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="mt-2 w-full py-2 px-2 bg-amber-400 hover:bg-amber-300 border border-amber-200 rounded-lg text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                    style={{ color: '#042f2e' }}
                   >
-                    <RefreshCw className="w-3 h-3 text-purple-600" />
+                    <RefreshCw className="w-3.5 h-3.5" style={{ color: '#042f2e' }} />
                     <span>Convertir en Facture</span>
                   </button>
                 )}
@@ -1221,12 +1284,39 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
             <p className="hidden sm:block text-[11px] text-slate-500 font-medium -mt-1 mb-1">
               Bord droit d’un en-tête → glisser pour régler la largeur de la colonne.
             </p>
+            {someSelected && (
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-300/40 bg-rose-500/10 px-3 py-2">
+                <p className="text-xs font-semibold text-rose-200">
+                  {selectedRowIds.size} ligne{selectedRowIds.size > 1 ? 's' : ''} sélectionnée
+                  {selectedRowIds.size > 1 ? 's' : ''}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRowIds(new Set())}
+                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-300 hover:bg-white/10 cursor-pointer"
+                  >
+                    Tout désélectionner
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemoveSelectedRows}
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-extrabold bg-rose-600 hover:bg-rose-500 text-white flex items-center gap-1.5 cursor-pointer touch-manipulation"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Supprimer la sélection
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className={`overflow-x-auto overscroll-x-contain rounded-xl border border-slate-200 ${fillDrag ? 'select-none cursor-crosshair' : ''}`}>
               <table
                 className="text-left border-collapse table-fixed"
                 style={{ width: tableMinWidth, minWidth: tableMinWidth }}
               >
                 <colgroup>
+                  <col style={{ width: colWidths.select }} />
                   <col style={{ width: colWidths.index }} />
                   <col style={{ width: colWidths.description }} />
                   {showDimensions && (
@@ -1244,6 +1334,19 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 </colgroup>
                 <thead>
                   <tr className="bg-slate-50 border-y border-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                    <th className="py-2.5 px-1.5 text-center">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someSelected && !allSelected;
+                        }}
+                        onChange={toggleSelectAllRows}
+                        className="w-4 h-4 rounded border-slate-400 accent-brand-mid cursor-pointer"
+                        title="Tout sélectionner"
+                        aria-label="Tout sélectionner"
+                      />
+                    </th>
                     <ResizableTh
                       colKey="index"
                       width={colWidths.index}
@@ -1337,12 +1440,24 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                     let lineNo = 0;
                     return items.map((item, rowIndex) => {
                     if (isSectionItem(item)) {
+                      const sectionSelected = selectedRowIds.has(item.id);
                       return (
                         <tr
                           key={item.id}
                           data-item-row-index={rowIndex}
-                          className="bg-gradient-to-r from-brand-mist/90 to-slate-100/80"
+                          className={`bg-gradient-to-r from-brand-mist/90 to-slate-100/80 ${
+                            sectionSelected ? 'ring-1 ring-inset ring-brand-glow/50' : ''
+                          }`}
                         >
+                          <td className="py-2.5 px-1.5 text-center align-middle">
+                            <input
+                              type="checkbox"
+                              checked={sectionSelected}
+                              onChange={() => toggleRowSelected(item.id)}
+                              className="w-4 h-4 rounded border-slate-400 accent-brand-mid cursor-pointer"
+                              aria-label="Sélectionner ce titre"
+                            />
+                          </td>
                           <td colSpan={editorColSpanWithoutActions} className="py-2.5 px-3">
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-xl bg-brand-ink text-brand-glow border border-brand-mid/30">
@@ -1387,9 +1502,23 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
 
                     lineNo += 1;
                     const lineHT = item.quantity * item.unitPrice * (1 - (item.discount || 0) / 100);
+                    const rowSelected = selectedRowIds.has(item.id);
 
                     return (
-                      <tr key={item.id} data-item-row-index={rowIndex}>
+                      <tr
+                        key={item.id}
+                        data-item-row-index={rowIndex}
+                        className={rowSelected ? 'bg-brand-mist/40 ring-1 ring-inset ring-brand-glow/40' : undefined}
+                      >
+                        <td className="py-2.5 px-1.5 text-center align-middle">
+                          <input
+                            type="checkbox"
+                            checked={rowSelected}
+                            onChange={() => toggleRowSelected(item.id)}
+                            className="w-4 h-4 rounded border-slate-400 accent-brand-mid cursor-pointer"
+                            aria-label={`Sélectionner la ligne ${lineNo}`}
+                          />
+                        </td>
                         <td className="py-2.5 px-2 text-center text-[11px] font-black text-slate-400 tabular-nums">
                           {lineNo}
                         </td>
