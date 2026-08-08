@@ -944,34 +944,34 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="client"
               data-pdf-module-label="Bloc client"
               data-pdf-keep
-              className={`my-6 p-4 rounded-2xl bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-row justify-between gap-4 items-center ${
-              isDevis ? 'border-l-4 border-l-sky-600' : 'border-l-4 border-l-blue-700'
+              className={`my-2.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-slate-50 via-slate-50/80 to-white border border-slate-200/90 shadow-2xs flex flex-row justify-between gap-3 items-center ${
+              isDevis ? 'border-l-[3px] border-l-sky-600' : 'border-l-[3px] border-l-blue-700'
             }`}>
-              <div className="space-y-1 flex-1">
-                <div className="flex items-center gap-1.5 text-[10px] uppercase font-black text-slate-400 tracking-wider">
-                  <User className={`w-3.5 h-3.5 ${isDevis ? 'text-sky-600' : 'text-blue-700'}`} />
+              <div className="space-y-0 flex-1 leading-snug">
+                <div className="flex items-center gap-1 text-[9px] uppercase font-black text-slate-400 tracking-wider leading-none mb-0.5">
+                  <User className={`w-3 h-3 ${isDevis ? 'text-sky-600' : 'text-blue-700'}`} />
                   <span>DESTINATAIRE / FACTURÉ À :</span>
                 </div>
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-xs font-black text-slate-900 leading-tight">
                   {doc.clientInfo.companyName || doc.clientInfo.name}
                 </h3>
                 {doc.clientInfo.companyName && options.showContactName && doc.clientInfo.name && (
-                  <p className="text-xs text-slate-600 font-semibold">À l'attention de : {doc.clientInfo.name}</p>
+                  <p className="text-[10px] text-slate-600 font-semibold leading-tight">À l'attention de : {doc.clientInfo.name}</p>
                 )}
                 {options.showClientAddress && doc.clientInfo.address && (
-                  <p className="text-xs text-slate-600">{doc.clientInfo.address}</p>
+                  <p className="text-[10px] text-slate-600 leading-tight">{doc.clientInfo.address}</p>
                 )}
                 {options.showClientPhoneEmail && (doc.clientInfo.phone || doc.clientInfo.email) && (
-                  <p className="text-xs text-slate-600 font-mono">
+                  <p className="text-[10px] text-slate-600 font-mono leading-tight">
                     {doc.clientInfo.phone}{doc.clientInfo.email ? ` | ${doc.clientInfo.email}` : ''}
                   </p>
                 )}
               </div>
 
               {options.showClientNif && doc.clientInfo.nifRccm && (
-                <div className="text-right bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-2xs">
-                  <span className="text-[9px] uppercase font-black text-slate-400 tracking-wider block mb-0.5">Identifiant Fiscal Client</span>
-                  <p className="font-mono font-bold text-xs text-slate-800">{doc.clientInfo.nifRccm}</p>
+                <div className="text-right bg-white px-2 py-1 rounded-md border border-slate-200/80 shadow-2xs shrink-0">
+                  <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block leading-none mb-0.5">Identifiant Fiscal Client</span>
+                  <p className="font-mono font-bold text-[10px] text-slate-800 leading-tight">{doc.clientInfo.nifRccm}</p>
                 </div>
               )}
             </div>
@@ -980,7 +980,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             <div
               data-pdf-module="items"
               data-pdf-module-label="Tableau des articles"
-              className="mb-6"
+              className="mb-2.5"
             >
               <table className="w-full text-left border-collapse border-2 border-black">
                 <thead>
@@ -1064,22 +1064,22 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="totals"
               data-pdf-module-label="Totaux & paiement"
               data-pdf-keep
-              className={`flex flex-row gap-6 mb-6 ${options.showPaymentDetails ? 'justify-between items-start' : 'justify-end items-end'}`}
+              className={`flex flex-row gap-3 mb-2.5 ${options.showPaymentDetails ? 'justify-between items-stretch' : 'justify-end items-end'}`}
             >
               {/* Optional Payment Details & Bank RIB */}
               {options.showPaymentDetails && (
-                <div className="flex-1 w-full bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90 space-y-2 text-[11px]">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-800 tracking-wider pb-1.5 border-b border-slate-200/80">
-                    <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                <div className="flex-1 min-w-0 bg-slate-50/90 px-2.5 py-1.5 rounded-lg border border-slate-200/90 space-y-0.5 text-[10px] leading-snug">
+                  <div className="flex items-center gap-1 text-[9px] font-black uppercase text-slate-800 tracking-wider pb-0.5 border-b border-slate-200/80">
+                    <CreditCard className="w-3 h-3 text-blue-600" />
                     <span>MODALITÉS DE RÈGLEMENT & RIB</span>
                   </div>
                   {profile.bankDetails.bankName && (
                     <p><span className="text-slate-500">Banque :</span> <span className="font-bold text-slate-800">{profile.bankDetails.bankName}</span></p>
                   )}
                   {profile.bankDetails.ibanRib && (
-                    <p className="flex items-center gap-1.5 flex-wrap">
+                    <p className="flex items-center gap-1 flex-wrap">
                       <span className="text-slate-500">RIB / IBAN :</span>
-                      <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded-lg border border-slate-200/90 shadow-2xs inline-block">
+                      <span className="font-mono font-bold text-slate-900 bg-white px-1.5 py-px rounded border border-slate-200/90 inline-block">
                         {profile.bankDetails.ibanRib}
                       </span>
                     </p>
@@ -1088,16 +1088,16 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     <p><span className="text-slate-500">Titulaire :</span> <span className="font-bold text-slate-800">{profile.bankDetails.accountName}</span></p>
                   )}
                   {profile.bankDetails.mobileMoney && (
-                    <div className="pt-1.5 mt-1 border-t border-slate-200/80 text-blue-800 font-bold flex items-center gap-1.5">
+                    <div className="pt-0.5 mt-0.5 border-t border-slate-200/80 text-blue-800 font-bold flex items-center gap-1">
                       <span className="text-slate-500 font-normal">Mobile Money :</span>
-                      <span className="font-mono bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200 text-blue-800">{profile.bankDetails.mobileMoney}</span>
+                      <span className="font-mono bg-blue-50 px-1.5 py-px rounded border border-blue-200 text-blue-800">{profile.bankDetails.mobileMoney}</span>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Totals Summary */}
-              <div className="w-80 bg-slate-50/90 p-4.5 rounded-2xl border border-slate-200/90 space-y-2.5 text-xs shrink-0">
+              <div className="w-56 bg-slate-50/90 px-2.5 py-1.5 rounded-lg border border-slate-200/90 space-y-0.5 text-[10px] leading-snug shrink-0">
                 <div className="flex justify-between text-slate-600">
                   <span className="font-medium">Total HT :</span>
                   <span className="font-mono font-bold text-slate-800">{formatFCFA(totals.totalHT, doc.currency)}</span>
@@ -1115,9 +1115,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                   <span className="font-mono font-bold text-slate-800">{formatFCFA(totals.totalTVA, doc.currency)}</span>
                 </div>
 
-                <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-3 border-t-2 border-slate-900">
+                <div className="flex justify-between items-center text-xs font-black text-slate-900 pt-1 border-t border-slate-900">
                   <span>TOTAL TTC :</span>
-                  <span className={`font-mono text-lg px-3 py-1 rounded-xl border shadow-2xs ${
+                  <span className={`font-mono text-sm px-1.5 py-0.5 rounded-md border shadow-2xs ${
                     isDevis ? 'text-sky-700 bg-sky-50 border-sky-200' : 'text-blue-800 bg-blue-50 border-blue-200'
                   }`}>
                     {formatFCFA(totals.totalTTC, doc.currency)}
@@ -1132,9 +1132,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 data-pdf-module="amountWords"
                 data-pdf-module-label="Montant en lettres"
                 data-pdf-keep
-                className="p-4 bg-gradient-to-r from-slate-100/90 to-slate-50 rounded-2xl border-l-4 border-l-blue-600 border-y border-r border-slate-200/80 mb-6 text-xs flex items-center gap-3 shadow-2xs"
+                className="px-2.5 py-1.5 bg-gradient-to-r from-slate-100/90 to-slate-50 rounded-lg border-l-[3px] border-l-blue-600 border-y border-r border-slate-200/80 mb-2.5 text-[10px] flex items-center gap-2 shadow-2xs leading-snug"
               >
-                <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
                 <div>
                   <span className="font-bold text-slate-700">Arrêté {isDevis ? 'le présent devis' : 'la présente facture'} à la somme de : </span>
                   <span className="font-bold text-slate-900 italic">« {amountInWords} »</span>
@@ -1148,24 +1148,24 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                 data-pdf-module="notes"
                 data-pdf-module-label="Notes & conditions"
                 data-pdf-keep
-                className="grid grid-cols-2 gap-4 text-[11px] text-slate-600 border-t border-slate-200/80 pt-4 mb-6"
+                className="grid grid-cols-2 gap-2.5 text-[10px] text-slate-600 border-t border-slate-200/80 pt-2 mb-2.5"
               >
                 {doc.notes && (
-                  <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/70 space-y-1">
-                    <h5 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                      <Info className="w-3 h-3 text-slate-500" />
+                  <div className="bg-slate-50/80 px-2.5 py-1.5 rounded-lg border border-slate-200/70 space-y-0.5">
+                    <h5 className="font-bold text-slate-800 text-[9px] uppercase tracking-wider flex items-center gap-1">
+                      <Info className="w-2.5 h-2.5 text-slate-500" />
                       <span>Notes :</span>
                     </h5>
-                    <p className="whitespace-pre-line text-slate-700 leading-relaxed">{doc.notes}</p>
+                    <p className="whitespace-pre-line text-slate-700 leading-snug">{doc.notes}</p>
                   </div>
                 )}
                 {doc.termsAndConditions && (
-                  <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/70 space-y-1">
-                    <h5 className="font-bold text-slate-800 text-[10px] uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-slate-500" />
+                  <div className="bg-slate-50/80 px-2.5 py-1.5 rounded-lg border border-slate-200/70 space-y-0.5">
+                    <h5 className="font-bold text-slate-800 text-[9px] uppercase tracking-wider flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5 text-slate-500" />
                       <span>Conditions de règlement :</span>
                     </h5>
-                    <p className="whitespace-pre-line text-slate-700 leading-relaxed">{doc.termsAndConditions}</p>
+                    <p className="whitespace-pre-line text-slate-700 leading-snug">{doc.termsAndConditions}</p>
                   </div>
                 )}
               </div>
