@@ -58,6 +58,22 @@ const BAMAKO_SLIDES = [
   '/mali-bamako-50.jpg',
   '/mali-bamako-51.jpg',
   '/mali-bamako-52.jpg',
+  '/mali-bamako-53.jpg',
+  '/mali-bamako-54.jpg',
+  '/mali-bamako-55.jpg',
+  '/mali-bamako-56.jpg',
+  '/mali-bamako-57.jpg',
+  '/mali-bamako-58.jpg',
+  '/mali-bamako-59.jpg',
+  '/mali-bamako-60.jpg',
+  '/mali-bamako-61.jpg',
+  '/mali-bamako-62.jpg',
+  '/mali-bamako-63.jpg',
+  '/mali-bamako-64.jpg',
+  '/mali-bamako-65.jpg',
+  '/mali-bamako-66.jpg',
+  '/mali-bamako-67.jpg',
+  '/mali-bamako-68.jpg',
 ] as const;
 
 const SLIDE_INTERVAL_MS = 5500;
