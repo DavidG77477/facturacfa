@@ -246,6 +246,13 @@ textarea::placeholder {
   -webkit-text-stroke: 0.4px currentColor;
 }
 
+/* Montant en lettres après « Arrêté … à la somme de » */
+[id^='pdf-preview-'] [data-pdf-amount-words] {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: 700 !important;
+  -webkit-text-stroke: 0.35px currentColor;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body {
     animation: none !important;

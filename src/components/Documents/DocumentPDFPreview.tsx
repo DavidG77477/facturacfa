@@ -1328,8 +1328,16 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               >
                 <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
                 <div>
-                  <span className="font-bold text-slate-700">Arrêté {isDevis ? 'le présent devis' : 'la présente facture'} à la somme de : </span>
-                  <span className="font-bold text-slate-900 italic">« {amountInWords} »</span>
+                  <span className="font-bold text-slate-700">
+                    Arrêté {isDevis ? 'le présent devis' : 'la présente facture'} à la somme de :{' '}
+                  </span>
+                  <b
+                    className="font-bold text-slate-900 italic"
+                    style={{ fontWeight: 700, fontFamily: 'Arial, Helvetica, sans-serif' }}
+                    data-pdf-amount-words
+                  >
+                    « {amountInWords} »
+                  </b>
                 </div>
               </div>
             )}
