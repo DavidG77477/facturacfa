@@ -980,26 +980,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             <div
               data-pdf-module="items"
               data-pdf-module-label="Tableau des articles"
-              className="mb-6 overflow-hidden rounded-xl border border-slate-200/90 shadow-xs"
+              className="mb-6"
             >
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse border-2 border-black">
                 <thead>
-                  <tr className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider">
-                    <th className="py-3 px-2 text-center w-10">N°</th>
-                    <th className="py-3 px-4">Désignation / Article</th>
+                  <tr className="bg-white text-black text-[10px] font-black uppercase tracking-wider">
+                    <th className="py-1 px-1.5 text-center w-10 border border-black">N°</th>
+                    <th className="py-1 px-2 border border-black">Désignation / Article</th>
                     {hasDimensions && (
                       <>
-                        <th className="py-3 px-2 text-center w-24">Largeur (mm)</th>
-                        <th className="py-3 px-2 text-center w-24">Hauteur (mm)</th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black">Largeur (mm)</th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black">Hauteur (mm)</th>
                       </>
                     )}
-                    <th className="py-3 px-2 text-center w-14">Qté</th>
-                    <th className="py-3 px-3 text-right w-32">P.U. ({doc.currency})</th>
-                    {hasDiscount && <th className="py-3 px-2 text-center w-16">Remise</th>}
-                    <th className="py-3 px-4 text-right w-36">Total HT ({doc.currency})</th>
+                    <th className="py-1 px-1.5 text-center w-14 border border-black">Qté</th>
+                    <th className="py-1 px-2 text-right w-32 border border-black">P.U. ({doc.currency})</th>
+                    {hasDiscount && <th className="py-1 px-1.5 text-center w-16 border border-black">Remise</th>}
+                    <th className="py-1 px-2 text-right w-36 border border-black">Total HT ({doc.currency})</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/70">
+                <tbody>
                   {(() => {
                     const pdfColSpan =
                       2 + // N° + désignation
@@ -1011,10 +1011,10 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     return doc.items.map((item, idx) => {
                       if (isSectionItem(item)) {
                         return (
-                          <tr key={item.id || `section-${idx}`} className="bg-slate-100">
+                          <tr key={item.id || `section-${idx}`} className="bg-white">
                             <td
                               colSpan={pdfColSpan}
-                              className="py-2.5 px-4 text-[11px] font-black uppercase tracking-wide text-slate-800 border-y border-slate-300"
+                              className="py-1 px-2 text-[11px] font-black uppercase tracking-wide text-black border border-black"
                             >
                               {item.description?.trim() || '—'}
                             </td>
@@ -1028,29 +1028,29 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                       const netHT = gross - discountAmt;
 
                       return (
-                        <tr key={item.id || idx} className={lineNo % 2 === 0 ? 'bg-slate-50/40' : 'bg-white'}>
-                          <td className="py-3 px-2 text-center text-slate-500 font-mono text-[11px] font-bold tabular-nums">
+                        <tr key={item.id || idx} className="bg-white">
+                          <td className="py-1 px-1.5 text-center text-black font-mono text-[11px] font-bold tabular-nums border border-black">
                             {lineNo}
                           </td>
-                          <td className="py-3 px-4">
-                            <div className="font-semibold text-slate-900 text-xs">{item.description}</div>
+                          <td className="py-1 px-2 border border-black">
+                            <div className="font-semibold text-black text-xs leading-snug">{item.description}</div>
                           </td>
                           {hasDimensions && (
                             <>
-                              <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
+                              <td className="py-1 px-1.5 text-center text-black font-mono text-xs font-medium border border-black">
                                 {item.width ? String(item.width) : '-'}
                               </td>
-                              <td className="py-3 px-2 text-center text-slate-700 font-mono text-xs font-medium">
+                              <td className="py-1 px-1.5 text-center text-black font-mono text-xs font-medium border border-black">
                                 {item.length ? String(item.length) : '-'}
                               </td>
                             </>
                           )}
-                          <td className="py-3 px-2 text-center text-slate-900 font-bold text-xs">{item.quantity}</td>
-                          <td className="py-3 px-3 text-right text-slate-800 font-mono text-xs font-semibold">{formatFCFA(item.unitPrice, '')}</td>
+                          <td className="py-1 px-1.5 text-center text-black font-bold text-xs border border-black">{item.quantity}</td>
+                          <td className="py-1 px-2 text-right text-black font-mono text-xs font-semibold border border-black">{formatFCFA(item.unitPrice, '')}</td>
                           {hasDiscount && (
-                            <td className="py-3 px-2 text-center text-slate-500 font-mono text-xs">{item.discount ? `${item.discount}%` : '-'}</td>
+                            <td className="py-1 px-1.5 text-center text-black font-mono text-xs border border-black">{item.discount ? `${item.discount}%` : '-'}</td>
                           )}
-                          <td className="py-3 px-4 text-right font-mono font-black text-slate-900 text-xs">{formatFCFA(netHT, '')}</td>
+                          <td className="py-1 px-2 text-right font-mono font-black text-black text-xs border border-black">{formatFCFA(netHT, '')}</td>
                         </tr>
                       );
                     });
