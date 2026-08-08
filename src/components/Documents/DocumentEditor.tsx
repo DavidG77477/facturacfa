@@ -92,7 +92,7 @@ const FillableCell: React.FC<FillableCellProps> = ({
       data-fill-field={field}
       data-fill-row={rowIndex}
     >
-      {/* Input + poignée Excel collée à droite (toujours visible) */}
+      {/* Input + poignée Excel (masquée sur tactile : elle bloquait la saisie iPad) */}
       <div className="flex items-end gap-0.5">
         <div className="min-w-0 flex-1">{children}</div>
         <button
@@ -105,7 +105,7 @@ const FillableCell: React.FC<FillableCellProps> = ({
             e.stopPropagation();
             onFillStart(field, rowIndex, value, e);
           }}
-          className={`shrink-0 w-4 h-4 mb-0.5 rounded-[2px] border-2 border-slate-900 bg-brand-glow shadow cursor-crosshair touch-none hover:bg-brand-ink active:bg-brand-deep ${
+          className={`shrink-0 w-4 h-4 mb-0.5 rounded-[2px] border-2 border-slate-900 bg-brand-glow shadow cursor-crosshair touch-none hover:bg-brand-ink active:bg-brand-deep hidden [@media(hover:hover)_and_(pointer:fine)]:block ${
             isOrigin ? 'ring-2 ring-brand-glow scale-110 bg-brand-ink' : ''
           }`}
         />
@@ -113,6 +113,14 @@ const FillableCell: React.FC<FillableCellProps> = ({
     </td>
   );
 };
+
+/** Parse saisie numérique tactile (autorise le champ vide pendant l’édition). */
+function parseEditableNumber(raw: string): number | '' {
+  const trimmed = raw.trim().replace(',', '.');
+  if (trimmed === '') return '';
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : '';
+}
 
 /** Colonnes du tableau articles — largeurs redimensionnables */
 type EditorColKey =
@@ -711,6 +719,17 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
         setNumber(finalNumber);
       }
 
+      const normalizedItems = items.map((item) =>
+        isSectionItem(item)
+          ? item
+          : {
+              ...item,
+              quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+              unitPrice: Math.max(0, Number(item.unitPrice) || 0),
+              discount: Math.min(100, Math.max(0, Number(item.discount) || 0)),
+            },
+      );
+
       const doc: InvoiceDocument = {
         id: docId,
         number: finalNumber,
@@ -727,7 +746,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           address: selectedClient.address,
           nifRccm: selectedClient.nifRccm,
         },
-        items,
+        items: normalizedItems,
         currency,
         taxRate,
         notes,
@@ -1460,13 +1479,25 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                           className="py-2.5 px-1.5"
                         >
                           <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleItemChange(item.id, 'quantity', Math.max(1, Number(e.target.value)))
-                            }
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="off"
+                            value={item.quantity === 0 ? '' : String(item.quantity ?? '')}
+                            onChange={(e) => {
+                              const parsed = parseEditableNumber(e.target.value.replace(/[^\d]/g, ''));
+                              handleItemChange(
+                                item.id,
+                                'quantity',
+                                parsed === '' ? 0 : Math.max(0, Math.floor(parsed)),
+                              );
+                            }}
+                            onBlur={() => {
+                              if (!item.quantity || item.quantity < 1) {
+                                handleItemChange(item.id, 'quantity', 1);
+                              }
+                            }}
+                            className="w-full min-h-10 sm:min-h-0 px-2 py-2 sm:py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm sm:text-xs text-center font-semibold focus:outline-none focus:ring-2 focus:ring-brand-mid touch-manipulation"
                           />
                         </FillableCell>
                         <FillableCell
@@ -1478,12 +1509,20 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                           className="py-2.5 px-2"
                         >
                           <input
-                            type="number"
-                            min="0"
-                            step="500"
-                            value={item.unitPrice}
-                            onChange={(e) => handleItemChange(item.id, 'unitPrice', Number(e.target.value))}
-                            className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                            type="text"
+                            inputMode="decimal"
+                            autoComplete="off"
+                            value={item.unitPrice === 0 ? '' : String(item.unitPrice ?? '')}
+                            onChange={(e) => {
+                              const parsed = parseEditableNumber(e.target.value.replace(/[^\d.,]/g, ''));
+                              handleItemChange(item.id, 'unitPrice', parsed === '' ? 0 : parsed);
+                            }}
+                            onBlur={() => {
+                              if (item.unitPrice < 0 || Number.isNaN(item.unitPrice)) {
+                                handleItemChange(item.id, 'unitPrice', 0);
+                              }
+                            }}
+                            className="w-full min-h-10 sm:min-h-0 px-2 py-2 sm:py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm sm:text-xs font-mono font-bold text-right focus:outline-none focus:ring-2 focus:ring-brand-mid touch-manipulation"
                           />
                         </FillableCell>
                         {showDiscount && (
@@ -1496,12 +1535,19 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                             className="py-2.5 px-1.5"
                           >
                             <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={item.discount}
-                              onChange={(e) => handleItemChange(item.id, 'discount', Number(e.target.value))}
-                              className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid"
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              value={item.discount === 0 ? '' : String(item.discount ?? '')}
+                              onChange={(e) => {
+                                const parsed = parseEditableNumber(e.target.value.replace(/[^\d.,]/g, ''));
+                                handleItemChange(
+                                  item.id,
+                                  'discount',
+                                  parsed === '' ? 0 : Math.min(100, Math.max(0, parsed)),
+                                );
+                              }}
+                              className="w-full min-h-10 sm:min-h-0 px-2 py-2 sm:py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm sm:text-xs text-center font-mono focus:outline-none focus:ring-2 focus:ring-brand-mid touch-manipulation"
                             />
                           </FillableCell>
                         )}
@@ -1514,10 +1560,11 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                               type="button"
                               onClick={() => handleRemoveItem(item.id)}
                               disabled={items.filter((it) => !isSectionItem(it)).length <= 1}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors disabled:opacity-30 cursor-pointer"
+                              className="min-w-10 min-h-10 sm:min-w-0 sm:min-h-0 p-2.5 sm:p-1.5 text-slate-400 hover:text-rose-600 active:text-rose-700 active:bg-rose-50 rounded-xl transition-colors disabled:opacity-30 cursor-pointer touch-manipulation flex items-center justify-center"
                               title="Supprimer la ligne"
+                              aria-label="Supprimer la ligne"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
                             </button>
                             <button
                               type="button"
