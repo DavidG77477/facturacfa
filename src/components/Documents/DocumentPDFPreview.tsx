@@ -37,12 +37,12 @@ import {
   downloadPDF,
   preparePdfVisualPreview,
   disposePdfVisualPreview,
-  printDocument,
+  printPDF,
   type PdfLayoutMeasure,
 } from '../../utils/pdfGenerator';
 import { getStatusInfo } from '../../utils/status';
 import { formatDateFR } from '../../utils/date';
-import { PdfPageBreakModal } from './PdfPageBreakModal';
+import { PdfPageBreakModal, type PdfPlannerConfirmMode } from './PdfPageBreakModal';
 
 interface DocumentPDFPreviewProps {
   document: InvoiceDocument;
@@ -110,6 +110,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
   const [showOptionsBar, setShowOptionsBar] = React.useState(false);
   const [showPageBreakModal, setShowPageBreakModal] = React.useState(false);
+  const [plannerMode, setPlannerMode] = React.useState<PdfPlannerConfirmMode>('download');
   const [pdfLayout, setPdfLayout] = React.useState<PdfLayoutMeasure | null>(null);
   const [isCapturingPreview, setIsCapturingPreview] = React.useState(false);
   const optionsRef = React.useRef(options);
@@ -332,8 +333,9 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     </>
   );
 
-  const openDownloadPlanner = async () => {
+  const openPdfPlanner = async (mode: PdfPlannerConfirmMode) => {
     if (isExporting || isCapturingPreview) return;
+    setPlannerMode(mode);
     setShowPageBreakModal(true);
     setIsCapturingPreview(true);
     setPdfLayout(null);
@@ -345,7 +347,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     }
   };
 
-  const closeDownloadPlanner = () => {
+  const closePdfPlanner = () => {
     if (isExporting) return;
     setShowPageBreakModal(false);
     disposePdfVisualPreview();
@@ -371,11 +373,27 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     patchPreviewOptions({ hiddenPdfPageStarts: starts });
   };
 
-  const confirmDownload = async () => {
+  const confirmPlannerAction = async () => {
     if (isExporting) return;
     setIsExporting(true);
     setDownloadSuccess(false);
+    const layoutOpts = {
+      breakAfterModuleIds: optionsRef.current.pageBreakAfterModules || [],
+      pullToPreviousModuleIds: optionsRef.current.pullToPreviousPageModules || [],
+      hiddenPageStarts: optionsRef.current.hiddenPdfPageStarts || [],
+      documentNumber: doc.number,
+    };
     try {
+      if (plannerMode === 'print') {
+        const success = await printPDF(elementId, layoutOpts);
+        if (success) {
+          setShowPageBreakModal(false);
+          disposePdfVisualPreview();
+          setPdfLayout(null);
+        }
+        return;
+      }
+
       const clientNameClean = (doc.clientInfo.companyName || doc.clientInfo.name || 'client').replace(
         /\s+/g,
         '_'
@@ -383,12 +401,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
       const success = await downloadPDF(
         elementId,
         `${doc.type}_${doc.number}_${clientNameClean}`,
-        {
-          breakAfterModuleIds: optionsRef.current.pageBreakAfterModules || [],
-          pullToPreviousModuleIds: optionsRef.current.pullToPreviousPageModules || [],
-          hiddenPageStarts: optionsRef.current.hiddenPdfPageStarts || [],
-          documentNumber: doc.number,
-        }
+        layoutOpts
       );
       if (success) {
         setShowPageBreakModal(false);
@@ -400,10 +413,6 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handlePrint = () => {
-    printDocument(elementId);
   };
 
   const handleCopySummary = () => {
@@ -428,11 +437,12 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
         onChangeBreaks={updatePageBreaks}
         onChangePulls={updatePagePulls}
         onChangeHiddenPages={updateHiddenPages}
-        onConfirmDownload={confirmDownload}
-        onClose={closeDownloadPlanner}
+        onConfirm={confirmPlannerAction}
+        onClose={closePdfPlanner}
         isExporting={isExporting}
         isCapturingPreview={isCapturingPreview}
         documentLabel={`${isDevis ? 'Devis' : 'Facture'} ${doc.number}`}
+        confirmMode={plannerMode}
       />
 
       {/* Top Action Toolbar */}
@@ -515,16 +525,17 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
           </button>
 
           <button
-            onClick={handlePrint}
-            className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10"
+            onClick={() => openPdfPlanner('print')}
+            disabled={isExporting || isCapturingPreview}
+            className="px-3.5 py-2.5 sm:py-2 bg-brand-deep/70 hover:bg-brand-mid/40 text-brand-sand hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10 disabled:opacity-50"
           >
             <Printer className="w-3.5 h-3.5 text-brand-sand/50" />
             <span>Imprimer</span>
           </button>
 
           <button
-            onClick={openDownloadPlanner}
-            disabled={isExporting}
+            onClick={() => openPdfPlanner('download')}
+            disabled={isExporting || isCapturingPreview}
             className={`col-span-2 sm:col-span-1 px-4 py-3 sm:py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 border shadow-[0_0_18px_rgba(45,212,191,0.4)] ${
               downloadSuccess
                 ? 'bg-emerald-300 border-emerald-200'

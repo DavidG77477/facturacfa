@@ -1752,17 +1752,15 @@ export function planPdfPages(
 }
 
 /**
- * Génère et télécharge un PDF A4 identique à l'aperçu.
+ * Génère un Blob PDF A4 (même pipeline que l’aperçu / téléchargement).
  */
-export async function downloadPDF(
+export async function generatePdfBlob(
   elementId: string,
-  fileName: string,
   options: DownloadPdfOptions = {}
-): Promise<boolean> {
+): Promise<Blob> {
   const element = document.getElementById(elementId);
   if (!element) {
-    alert(`Impossible de trouver le document à télécharger.`);
-    return false;
+    throw new Error('Impossible de trouver le document.');
   }
 
   let restoreLayout: (() => void) | null = null;
@@ -1877,24 +1875,37 @@ export async function downloadPDF(
       options.documentNumber
     );
 
-    const cleanFileName = `${fileName.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
     const blob = pdf.output('blob');
     if (!(blob instanceof Blob) || blob.size < 200) {
       throw new Error('Le fichier PDF généré est invalide.');
     }
 
-    const pdfBlob =
-      blob.type === 'application/pdf'
-        ? blob
-        : new Blob([await blob.arrayBuffer()], { type: 'application/pdf' });
-
-    triggerBrowserDownload(pdfBlob, cleanFileName);
-    return true;
+    return blob.type === 'application/pdf'
+      ? blob
+      : new Blob([await blob.arrayBuffer()], { type: 'application/pdf' });
   } catch (error) {
     restoreFooter?.();
     restoreStyles?.();
     restoreImages?.();
     restoreLayout?.();
+    throw error;
+  }
+}
+
+/**
+ * Génère et télécharge un PDF A4 identique à l'aperçu.
+ */
+export async function downloadPDF(
+  elementId: string,
+  fileName: string,
+  options: DownloadPdfOptions = {}
+): Promise<boolean> {
+  try {
+    const pdfBlob = await generatePdfBlob(elementId, options);
+    const cleanFileName = `${fileName.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    triggerBrowserDownload(pdfBlob, cleanFileName);
+    return true;
+  } catch (error) {
     console.error('Erreur génération PDF:', error);
     const message =
       error instanceof Error
@@ -1908,7 +1919,89 @@ export async function downloadPDF(
 }
 
 /**
- * Impression navigateur (bouton Imprimer uniquement).
+ * Génère le PDF (même découpage que l’aperçu) puis ouvre la boîte d’impression.
+ */
+export async function printPDF(
+  elementId: string,
+  options: DownloadPdfOptions = {}
+): Promise<boolean> {
+  try {
+    const pdfBlob = await generatePdfBlob(elementId, options);
+    const url = URL.createObjectURL(pdfBlob);
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('title', 'Impression FacturaCFA');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    document.body.appendChild(iframe);
+
+    const cleanup = () => {
+      window.setTimeout(() => {
+        try {
+          iframe.remove();
+        } catch {
+          /* ignore */
+        }
+        URL.revokeObjectURL(url);
+      }, 60_000);
+    };
+
+    const triggerPrint = () => {
+      try {
+        const win = iframe.contentWindow;
+        if (!win) throw new Error('Fenêtre d’impression indisponible.');
+        win.focus();
+        win.print();
+      } catch (err) {
+        // Fallback : nouvel onglet (utile sur certains iPad / Safari)
+        const tab = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!tab) {
+          throw err instanceof Error ? err : new Error('Impression bloquée par le navigateur.');
+        }
+      } finally {
+        cleanup();
+      }
+    };
+
+    await new Promise<void>((resolve, reject) => {
+      iframe.onload = () => {
+        // Laisser le viewer PDF charger le document
+        window.setTimeout(() => {
+          try {
+            triggerPrint();
+            resolve();
+          } catch (e) {
+            reject(e);
+          }
+        }, 400);
+      };
+      iframe.onerror = () => reject(new Error('Impossible de charger le PDF pour impression.'));
+      iframe.src = url;
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Erreur impression PDF:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : 'Impossible d’imprimer. Réessayez.';
+    alert(`Impossible d’imprimer : ${message}`);
+    return false;
+  }
+}
+
+/**
+ * @deprecated Préférer `printPDF` (même mise en page que Préparer le PDF).
+ * Impression DOM navigateur (sans découpage A4 planifié).
  */
 export function printDocument(elementId: string): void {
   const element = document.getElementById(elementId);

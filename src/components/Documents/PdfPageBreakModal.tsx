@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Scissors,
   Download,
+  Printer,
   X,
   Loader2,
   RotateCcw,
@@ -20,6 +21,8 @@ import {
   planPdfPages,
 } from '../../utils/pdfGenerator';
 
+export type PdfPlannerConfirmMode = 'download' | 'print';
+
 interface PdfPageBreakModalProps {
   open: boolean;
   layout: PdfLayoutMeasure | null;
@@ -29,11 +32,12 @@ interface PdfPageBreakModalProps {
   onChangeBreaks: (ids: string[]) => void;
   onChangePulls: (ids: string[]) => void;
   onChangeHiddenPages: (starts: number[]) => void;
-  onConfirmDownload: () => void;
+  onConfirm: () => void;
   onClose: () => void;
   isExporting: boolean;
   isCapturingPreview: boolean;
   documentLabel: string;
+  confirmMode?: PdfPlannerConfirmMode;
 }
 
 function PagePreviewFrame({
@@ -146,12 +150,14 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
   onChangeBreaks,
   onChangePulls,
   onChangeHiddenPages,
-  onConfirmDownload,
+  onConfirm,
   onClose,
   isExporting,
   isCapturingPreview,
   documentLabel,
+  confirmMode = 'download',
 }) => {
+  const isPrint = confirmMode === 'print';
   const [visualPages, setVisualPages] = useState<PdfVisualPagePreview[]>([]);
   const [selectedPage, setSelectedPage] = useState(0);
   const [hoveredModuleId, setHoveredModuleId] = useState<string | null>(null);
@@ -285,11 +291,13 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-brand-glow text-xs font-black uppercase tracking-wider mb-1">
               <ZoomIn className="w-3.5 h-3.5" />
-              <span>Aperçu PDF réel</span>
+              <span>{isPrint ? 'Aperçu avant impression' : 'Aperçu PDF réel'}</span>
             </div>
             <h2 className="text-lg font-black tracking-tight truncate">{documentLabel}</h2>
             <p className="text-xs text-slate-300 mt-1">
-              Survolez un module à droite pour le voir encadré dans l’aperçu.
+              {isPrint
+                ? 'Ajustez le découpage des pages, puis validez pour imprimer.'
+                : 'Survolez un module à droite pour le voir encadré dans l’aperçu.'}
             </p>
           </div>
           <button
@@ -311,7 +319,8 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
               </div>
             ) : visualPages.length === 0 ? (
               <div className="text-center py-20 text-sm text-slate-500">
-                Impossible de générer l’aperçu visuel. Vous pouvez quand même télécharger.
+                Impossible de générer l’aperçu visuel. Vous pouvez quand même{' '}
+                {isPrint ? 'imprimer' : 'télécharger'}.
               </div>
             ) : (
               <>
@@ -512,14 +521,19 @@ export const PdfPageBreakModal: React.FC<PdfPageBreakModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={onConfirmDownload}
+            onClick={onConfirm}
             disabled={isExporting || isCapturingPreview}
             className="px-5 py-3 rounded-xl text-xs font-bold bg-brand-ink hover:bg-brand-deep text-white flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
           >
             {isExporting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Génération du PDF…
+                {isPrint ? 'Préparation de l’impression…' : 'Génération du PDF…'}
+              </>
+            ) : isPrint ? (
+              <>
+                <Printer className="w-4 h-4" />
+                Imprimer ({pageCount} page{pageCount > 1 ? 's' : ''})
               </>
             ) : (
               <>
