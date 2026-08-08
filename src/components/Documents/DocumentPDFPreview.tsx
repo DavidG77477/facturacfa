@@ -670,7 +670,7 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
         <div
           ref={paperRef}
           id={elementId}
-          className={`bg-white text-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-200/90 w-[794px] min-h-[1123px] flex flex-col justify-between font-sans text-xs leading-relaxed relative overflow-visible box-border ${
+          className={`bg-white text-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-200/90 w-[794px] min-h-[1123px] flex flex-col justify-start font-sans text-xs leading-relaxed relative overflow-visible box-border ${
             isDevis ? 'border-t-[10px] border-t-sky-600' : 'border-t-[10px] border-t-blue-700'
           }`}
           style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
@@ -1178,17 +1178,17 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
               data-pdf-module="signatures"
               data-pdf-module-label="Cadre signatures"
               data-pdf-keep
-              className="pt-6 border-t border-slate-200 mt-6"
+              className="pt-3 border-t border-slate-200 mt-3"
             >
-              <div className="flex justify-between items-end text-[11px] text-slate-600 px-6">
+              <div className="flex justify-between items-end text-[11px] text-slate-600 px-4">
                 <div className="text-center w-48">
-                  <p className="font-bold text-slate-800 mb-12">Le Client (Bon pour accord)</p>
+                  <p className="font-bold text-slate-800 mb-10">Le Client (Bon pour accord)</p>
                   <div className="border-b border-dashed border-slate-300 w-full mb-1"></div>
                   <p className="text-[9px] text-slate-400">Date, nom et signature</p>
                 </div>
 
                 <div className="text-center w-56">
-                  <p className="font-bold text-slate-800 mb-12">Pour l'Émetteur / Cachet</p>
+                  <p className="font-bold text-slate-800 mb-10">Pour l'Émetteur / Cachet</p>
                   <div className="border-b border-dashed border-slate-300 w-full mb-1"></div>
                   <p className="text-[9px] text-slate-400">Cachet et signature</p>
                 </div>
