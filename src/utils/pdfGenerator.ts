@@ -425,6 +425,8 @@ const CAPTURE_STYLE_PROPS = [
   'object-position',
   'table-layout',
   'mix-blend-mode',
+  'transform',
+  'transform-origin',
 ] as const;
 
 function inlineComputedStylesForCapture(root: HTMLElement): () => void {
