@@ -1145,19 +1145,37 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             >
               <table className="w-full text-left border-collapse border-2 border-black">
                 <thead>
-                  <tr className="bg-white text-black text-[10px] uppercase tracking-wider">
-                    <th className="py-1 px-1.5 text-center w-10 border border-black font-bold" style={{ fontWeight: 700 }}>N°</th>
-                    <th className="py-1 px-2 border border-black font-bold" style={{ fontWeight: 700 }}>Désignation / Article</th>
+                  <tr className="bg-white text-black text-[11px] uppercase tracking-wide">
+                    <th className="py-1 px-1.5 text-center w-10 border border-black font-bold">
+                      <b>N°</b>
+                    </th>
+                    <th className="py-1 px-2 border border-black font-bold">
+                      <b>Désignation / Article</b>
+                    </th>
                     {hasDimensions && (
                       <>
-                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold" style={{ fontWeight: 700 }}>Largeur (mm)</th>
-                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold" style={{ fontWeight: 700 }}>Hauteur (mm)</th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold">
+                          <b>Largeur (mm)</b>
+                        </th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold">
+                          <b>Hauteur (mm)</b>
+                        </th>
                       </>
                     )}
-                    <th className="py-1 px-1.5 text-center w-14 border border-black font-bold" style={{ fontWeight: 700 }}>Qté</th>
-                    <th className="py-1 px-2 text-right w-32 border border-black font-bold" style={{ fontWeight: 700 }}>P.U. ({doc.currency})</th>
-                    {hasDiscount && <th className="py-1 px-1.5 text-center w-16 border border-black font-bold" style={{ fontWeight: 700 }}>Remise</th>}
-                    <th className="py-1 px-2 text-right w-36 border border-black font-bold" style={{ fontWeight: 700 }}>Total HT ({doc.currency})</th>
+                    <th className="py-1 px-1.5 text-center w-14 border border-black font-bold">
+                      <b>Qté</b>
+                    </th>
+                    <th className="py-1 px-2 text-right w-32 border border-black font-bold">
+                      <b>P.U. ({doc.currency})</b>
+                    </th>
+                    {hasDiscount && (
+                      <th className="py-1 px-1.5 text-center w-16 border border-black font-bold">
+                        <b>Remise</b>
+                      </th>
+                    )}
+                    <th className="py-1 px-2 text-right w-36 border border-black font-bold">
+                      <b>Total HT ({doc.currency})</b>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
