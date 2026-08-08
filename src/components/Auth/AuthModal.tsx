@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Lock, Mail, User as UserIcon, Shield, Building, KeyRound, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
+import { Lock, Mail, Shield, KeyRound, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 import { User } from '../../types';
 import { isSupabaseConfigured } from '../../lib/supabase';
-import { signIn, signUp } from '../../services/database';
+import { signIn } from '../../services/database';
 
 interface AuthModalProps {
   currentUser: User | null;
@@ -17,11 +17,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   isLockedMode = false,
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup' | 'unlock'>(isLockedMode ? 'unlock' : 'login');
+  const [mode, setMode] = useState<'login' | 'unlock'>(isLockedMode ? 'unlock' : 'login');
   const [email, setEmail] = useState(currentUser?.email || '');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState(currentUser?.name || '');
-  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,60 +49,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      if (mode === 'login') {
-        if (!email || !password) {
-          setError('Veuillez remplir tous les champs.');
-          return;
-        }
-
-        const { user, error: loginError } = await signIn(email, password);
-        if (loginError || !user) {
-          setError(loginError || 'Connexion échouée.');
-          return;
-        }
-
-        onLoginSuccess(user);
-        setSuccessMsg('Connexion réussie !');
-        setTimeout(() => onClose && onClose(), 500);
-      } else if (mode === 'signup') {
-        if (!email || !password || !name || !companyName) {
-          setError('Veuillez compléter tous les champs requis.');
-          return;
-        }
-
-        if (password.length < 6) {
-          setError('Le mot de passe doit comporter au moins 6 caractères.');
-          return;
-        }
-
-        const { user, error: signupError } = await signUp(email, password, name, companyName);
-        if (signupError || !user) {
-          setError(signupError || 'Inscription échouée.');
-          return;
-        }
-
-        onLoginSuccess(user);
-        setSuccessMsg('Compte entreprise créé avec succès !');
-        setTimeout(() => onClose && onClose(), 500);
+      if (!email || !password) {
+        setError('Veuillez remplir tous les champs.');
+        return;
       }
+
+      const { user, error: loginError } = await signIn(email, password);
+      if (loginError || !user) {
+        setError(loginError || 'Connexion échouée.');
+        return;
+      }
+
+      onLoginSuccess(user);
+      setSuccessMsg('Connexion réussie !');
+      setTimeout(() => onClose && onClose(), 500);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const title =
-    mode === 'unlock'
-      ? 'Déverrouiller FacturaCFA'
-      : mode === 'login'
-        ? 'Connexion'
-        : 'Créer votre compte';
-
+  const title = mode === 'unlock' ? 'Déverrouiller FacturaCFA' : 'Connexion';
   const subtitle =
     mode === 'unlock'
       ? 'Entrez votre mot de passe pour accéder à vos documents.'
-      : mode === 'login'
-        ? 'Accédez à vos devis, factures et fichiers clients'
-        : 'Générez des factures en Francs CFA (XOF/XAF) en 1 clic';
+      : 'Accédez à vos devis, factures et fichiers clients';
 
   const inputClass =
     'w-full pl-11 pr-4 py-3 glass-input rounded-2xl text-slate-100 placeholder:text-slate-500 focus:outline-none text-sm transition-shadow';
@@ -204,44 +172,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && (
-                <>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Nom du Responsable
-                    </label>
-                    <div className="relative">
-                      <UserIcon className="w-[18px] h-[18px] text-[#147a72]/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Ex: Jean Dupont"
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Nom de l'Entreprise / Société
-                    </label>
-                    <div className="relative">
-                      <Building className="w-[18px] h-[18px] text-[#147a72]/70 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        required
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="Ex: MON ENTREPRISE SARL"
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
               {mode !== 'unlock' && (
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
@@ -288,11 +218,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 ) : (
                   <>
                     <span>
-                      {mode === 'unlock'
-                        ? 'Déverrouiller la session'
-                        : mode === 'login'
-                          ? 'Se connecter'
-                          : 'Créer mon espace'}
+                      {mode === 'unlock' ? 'Déverrouiller la session' : 'Se connecter'}
                     </span>
                     <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                   </>
@@ -301,29 +227,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </form>
 
             <div className="mt-8 pt-5 border-t border-[#0a3d3a]/10 flex flex-col items-center gap-2 text-xs text-slate-500">
-              {mode === 'login' ? (
-                <p>
-                  Nouveau sur FacturaCFA ?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('signup')}
-                    className="text-brand-glow hover:text-brand-sand font-semibold cursor-pointer transition-colors"
-                  >
-                    Créer un compte
-                  </button>
-                </p>
-              ) : mode === 'signup' ? (
-                <p>
-                  Déjà un compte ?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('login')}
-                    className="text-brand-glow hover:text-brand-sand font-semibold cursor-pointer transition-colors"
-                  >
-                    Se connecter
-                  </button>
-                </p>
-              ) : (
+              {mode === 'unlock' && (
                 <button
                   type="button"
                   onClick={() => setMode('login')}
