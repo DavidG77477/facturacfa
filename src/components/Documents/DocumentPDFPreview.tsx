@@ -1145,19 +1145,19 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
             >
               <table className="w-full text-left border-collapse border-2 border-black">
                 <thead>
-                  <tr className="bg-white text-black text-[10px] font-black uppercase tracking-wider">
-                    <th className="py-1 px-1.5 text-center w-10 border border-black">N°</th>
-                    <th className="py-1 px-2 border border-black">Désignation / Article</th>
+                  <tr className="bg-white text-black text-[10px] uppercase tracking-wider">
+                    <th className="py-1 px-1.5 text-center w-10 border border-black font-bold" style={{ fontWeight: 700 }}>N°</th>
+                    <th className="py-1 px-2 border border-black font-bold" style={{ fontWeight: 700 }}>Désignation / Article</th>
                     {hasDimensions && (
                       <>
-                        <th className="py-1 px-1.5 text-center w-24 border border-black">Largeur (mm)</th>
-                        <th className="py-1 px-1.5 text-center w-24 border border-black">Hauteur (mm)</th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold" style={{ fontWeight: 700 }}>Largeur (mm)</th>
+                        <th className="py-1 px-1.5 text-center w-24 border border-black font-bold" style={{ fontWeight: 700 }}>Hauteur (mm)</th>
                       </>
                     )}
-                    <th className="py-1 px-1.5 text-center w-14 border border-black">Qté</th>
-                    <th className="py-1 px-2 text-right w-32 border border-black">P.U. ({doc.currency})</th>
-                    {hasDiscount && <th className="py-1 px-1.5 text-center w-16 border border-black">Remise</th>}
-                    <th className="py-1 px-2 text-right w-36 border border-black">Total HT ({doc.currency})</th>
+                    <th className="py-1 px-1.5 text-center w-14 border border-black font-bold" style={{ fontWeight: 700 }}>Qté</th>
+                    <th className="py-1 px-2 text-right w-32 border border-black font-bold" style={{ fontWeight: 700 }}>P.U. ({doc.currency})</th>
+                    {hasDiscount && <th className="py-1 px-1.5 text-center w-16 border border-black font-bold" style={{ fontWeight: 700 }}>Remise</th>}
+                    <th className="py-1 px-2 text-right w-36 border border-black font-bold" style={{ fontWeight: 700 }}>Total HT ({doc.currency})</th>
                   </tr>
                 </thead>
                 <tbody>
