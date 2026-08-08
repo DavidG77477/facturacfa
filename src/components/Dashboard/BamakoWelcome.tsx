@@ -122,6 +122,24 @@ const BAMAKO_SLIDES = [
   '/mali-bamako-114.jpg',
   '/mali-bamako-115.jpg',
   '/mali-bamako-116.jpg',
+  // Archives Bamako (années 60–80 / scènes anciennes)
+  '/mali-bamako-117.jpg',
+  '/mali-bamako-118.jpg',
+  '/mali-bamako-119.jpg',
+  '/mali-bamako-120.jpg',
+  '/mali-bamako-121.jpg',
+  '/mali-bamako-122.jpg',
+  '/mali-bamako-123.jpg',
+  '/mali-bamako-124.jpg',
+  '/mali-bamako-125.jpg',
+  '/mali-bamako-126.jpg',
+  '/mali-bamako-127.jpg',
+  '/mali-bamako-128.jpg',
+  '/mali-bamako-129.jpg',
+  '/mali-bamako-130.jpg',
+  '/mali-bamako-131.jpg',
+  '/mali-bamako-132.jpg',
+  '/mali-bamako-133.jpg',
 ] as const;
 
 const SLIDE_INTERVAL_MS = 5500;
