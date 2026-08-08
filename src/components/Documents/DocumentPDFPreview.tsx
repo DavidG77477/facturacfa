@@ -1037,24 +1037,26 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
 
                 {profile.tagline && <p className="text-[10px] text-slate-500 italic font-medium leading-tight">{profile.tagline}</p>}
 
-                <div className="text-[10px] text-slate-600 space-y-0.5 pt-0.5 leading-snug">
+                <div className="text-[10px] text-slate-800 space-y-0.5 pt-0.5 leading-snug">
                   {profile.address && (
                     <p className="flex items-start gap-1 leading-snug">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
-                      <span>{profile.address}{profile.city ? `, ${profile.city}` : ''}{profile.country ? `, ${profile.country}` : ''}</span>
+                      <MapPin className="w-3 h-3 text-slate-500 shrink-0 mt-0.5" />
+                      <b className="font-bold" style={{ fontWeight: 700 }}>
+                        {profile.address}{profile.city ? `, ${profile.city}` : ''}{profile.country ? `, ${profile.country}` : ''}
+                      </b>
                     </p>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0 text-slate-600">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0">
                     {profile.phone && (
                       <span className="flex items-center gap-1">
-                        <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                        <span className="font-semibold text-slate-700">{profile.phone}</span>
+                        <Phone className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                        <b className="font-bold text-slate-900" style={{ fontWeight: 700 }}>{profile.phone}</b>
                       </span>
                     )}
                     {profile.email && (
                       <span className="flex items-center gap-1">
-                        <Mail className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                        <span>{profile.email}</span>
+                        <Mail className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                        <b className="font-bold text-slate-900" style={{ fontWeight: 700 }}>{profile.email}</b>
                       </span>
                     )}
                   </div>
