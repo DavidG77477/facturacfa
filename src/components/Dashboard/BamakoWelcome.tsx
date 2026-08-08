@@ -44,9 +44,33 @@ const BAMAKO_SLIDES = [
   '/mali-bamako-36.jpg',
   '/mali-bamako-37.jpg',
   '/mali-bamako-38.jpg',
+  '/mali-bamako-39.jpg',
+  '/mali-bamako-40.jpg',
+  '/mali-bamako-41.jpg',
+  '/mali-bamako-42.jpg',
+  '/mali-bamako-43.jpg',
+  '/mali-bamako-44.jpg',
+  '/mali-bamako-45.jpg',
+  '/mali-bamako-46.jpg',
+  '/mali-bamako-47.jpg',
+  '/mali-bamako-48.jpg',
+  '/mali-bamako-49.jpg',
+  '/mali-bamako-50.jpg',
+  '/mali-bamako-51.jpg',
+  '/mali-bamako-52.jpg',
 ] as const;
 
 const SLIDE_INTERVAL_MS = 5500;
+
+/** Prochaine image au hasard (jamais la même deux fois de suite). */
+function nextRandomSlideIndex(current: number, length: number): number {
+  if (length <= 1) return 0;
+  let next = current;
+  while (next === current) {
+    next = Math.floor(Math.random() * length);
+  }
+  return next;
+}
 
 interface WeatherState {
   temp: number;
@@ -120,7 +144,9 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState<WeatherState | null>(null);
   const [weatherError, setWeatherError] = useState(false);
-  const [slideIndex, setSlideIndex] = useState(0);
+  const [slideIndex, setSlideIndex] = useState(() =>
+    Math.floor(Math.random() * BAMAKO_SLIDES.length),
+  );
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 1000);
@@ -129,7 +155,7 @@ export const BamakoWelcome: React.FC<BamakoWelcomeProps> = ({ userName }) => {
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      setSlideIndex((i) => (i + 1) % BAMAKO_SLIDES.length);
+      setSlideIndex((i) => nextRandomSlideIndex(i, BAMAKO_SLIDES.length));
     }, SLIDE_INTERVAL_MS);
     return () => window.clearInterval(id);
   }, []);
