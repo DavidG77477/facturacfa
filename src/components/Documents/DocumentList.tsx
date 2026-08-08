@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Calendar, Filter, Plus, FileText, CheckCircle2, Clock, AlertTriangle, XCircle, ArrowUpRight, Copy, Edit3, Trash2, Eye, RefreshCw, DollarSign, Tag, ChevronDown } from 'lucide-react';
-import { DateRangeFilter, DocumentStatus, DocumentType, InvoiceDocument } from '../../types';
+import { DateRangeFilter, DocumentStatus, DocumentType, InvoiceDocument, TodoItem } from '../../types';
 import { formatFCFA, calculateDocumentTotals } from '../../utils/currency';
 import { computeFinancialMetrics } from '../../utils/analytics';
 import { getStatusInfo, ALL_STATUSES } from '../../utils/status';
@@ -8,6 +8,7 @@ import { formatDateFR, toISODate } from '../../utils/date';
 import { FrenchDateInput } from '../ui/FrenchDateInput';
 import { BamakoWelcome } from '../Dashboard/BamakoWelcome';
 import { NewsCard } from '../Dashboard/NewsCard';
+import { UpcomingTodosCard } from '../Dashboard/UpcomingTodosCard';
 
 interface DocumentListProps {
   documents: InvoiceDocument[];
@@ -19,6 +20,9 @@ interface DocumentListProps {
   onUpdateStatus: (id: string, status: DocumentStatus) => void;
   onDeleteDocument: (id: string) => void;
   userName?: string;
+  todos?: TodoItem[];
+  onOpenTodos?: () => void;
+  onToggleTodo?: (id: string, done: boolean) => Promise<void> | void;
 }
 
 // Interactive Status Selector Component inside the table
@@ -132,6 +136,9 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onUpdateStatus,
   onDeleteDocument,
   userName,
+  todos = [],
+  onOpenTodos,
+  onToggleTodo,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [docTypeFilter, setDocTypeFilter] = useState<'all' | 'devis' | 'facture'>('all');
@@ -224,6 +231,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       <BamakoWelcome userName={userName} />
 
       <NewsCard />
+
+      {onOpenTodos && (
+        <UpcomingTodosCard
+          todos={todos}
+          onOpenTodos={onOpenTodos}
+          onToggle={onToggleTodo}
+        />
+      )}
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

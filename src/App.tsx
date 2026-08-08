@@ -635,6 +635,9 @@ export default function App() {
  <DocumentList
  documents={documents}
  userName={currentUser.name}
+ todos={todos}
+ onOpenTodos={() => setActiveTab('todos')}
+ onToggleTodo={handleToggleTodo}
  onNewDocument={(type) => {
  setEditingDocument(null);
  setNewDocumentType(type);
