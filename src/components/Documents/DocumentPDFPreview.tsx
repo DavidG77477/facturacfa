@@ -1332,11 +1332,15 @@ export const DocumentPDFPreview: React.FC<DocumentPDFPreviewProps> = ({
                     Arrêté {isDevis ? 'le présent devis' : 'la présente facture'} à la somme de :{' '}
                   </span>
                   <b
-                    className="font-bold text-slate-900 italic"
-                    style={{ fontWeight: 700, fontFamily: 'Arial, Helvetica, sans-serif' }}
+                    className="font-bold text-slate-900 italic uppercase"
+                    style={{
+                      fontWeight: 700,
+                      fontFamily: 'Arial, Helvetica, sans-serif',
+                      textTransform: 'uppercase',
+                    }}
                     data-pdf-amount-words
                   >
-                    « {amountInWords} »
+                    « {amountInWords.toLocaleUpperCase('fr-FR')} »
                   </b>
                 </div>
               </div>
